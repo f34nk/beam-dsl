@@ -1,6 +1,8 @@
 package io.beam.ir.erlang;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -711,8 +713,8 @@ class ErlangRendererTest {
     String expected =
         """
         -module(sigv4test_service_sigv4).
-        -include("runtime_types.hrl").
         -export([sign/3]).
+        -include("runtime_types.hrl").
 
         -type client_config() :: #{binary() => term()}.
 
@@ -961,5 +963,58 @@ class ErlangRendererTest {
             {ok, get_type_closure_output()} | {error, term()}.
         """;
     assertEquals(expected, new ErlangRenderer().renderCallbackForTest(callback));
+  }
+
+  @Test
+  void rendersBehaviourModuleWithCallbacks() {
+    Module module =
+        Module.behaviour(
+            "basic_service_behaviour",
+            List.of("Generated Erlang server behaviour for smithy.beam.demo.basic#BasicService."),
+            "basic_service_types.hrl",
+            List.of(
+                Callback.of(
+                    "handle_get_type_closure",
+                    "Ctx :: term(), Input :: get_type_closure_input(), Meta :: term()",
+                    "{ok, get_type_closure_output()} | {error, term()}",
+                    Edoc.of("Handle GetTypeClosure operation."))));
+
+    String expected =
+        """
+        %% Generated Erlang server behaviour for smithy.beam.demo.basic#BasicService.
+        -module(basic_service_behaviour).
+        -include("basic_service_types.hrl").
+        %% @doc Handle GetTypeClosure operation.
+        -callback handle_get_type_closure(Ctx :: term(), Input :: get_type_closure_input(), Meta :: term()) ->
+            {ok, get_type_closure_output()} | {error, term()}.
+        """;
+    assertEquals(expected, new ErlangRenderer().render(module));
+  }
+
+  @Test
+  void rendersServerModuleAttributesAndEpilogue() {
+    Module module =
+        Module.server(
+            "basic_service_server",
+            List.of("Generated Erlang server dispatcher."),
+            "basic_service_behaviour",
+            List.of("handle_get_type_closure/3", "init_handlers/0"),
+            "basic_service_types.hrl",
+            "basic_service_impl",
+            "{basic_service_server, handlers}",
+            List.of(
+                Function.of(
+                    "init_handlers",
+                    List.of(FunctionClause.of(List.of(), AtomExpr.of("ok"))))),
+            List.of(
+                "Call basic_service_server:init_handlers/0 during application start before dispatch.",
+                "Default impl module: basic_service_impl."));
+
+    String rendered = new ErlangRenderer().render(module);
+    assertTrue(rendered.contains("-behaviour(basic_service_behaviour)."));
+    assertTrue(rendered.contains("-define(DEFAULT_IMPL, basic_service_impl)."));
+    assertTrue(rendered.contains("-define(HANDLERS_KEY, {basic_service_server, handlers})."));
+    assertTrue(rendered.contains("Call basic_service_server:init_handlers/0"));
+    assertFalse(rendered.contains("-export([])"));
   }
 }

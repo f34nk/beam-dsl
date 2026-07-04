@@ -53,23 +53,48 @@ public final class ErlangRenderer implements Renderer {
     }
 
     out.append("-module(").append(module.name()).append(").\n");
+
+    if (module.moduleAttributes() != null) {
+      for (ModuleAttribute attribute : module.moduleAttributes()) {
+        render(attribute, out);
+      }
+    }
+
+    if (!module.suppressExport()) {
+      out.append("-export([");
+      if (module.exports() != null && !module.exports().isEmpty()) {
+        renderNamedExports(module.exports(), out);
+      } else {
+        renderExports(module.functions(), out);
+      }
+      out.append("]).\n");
+    }
+
     if (module.includeHeaders() != null) {
       for (String includeHeader : module.includeHeaders()) {
         out.append("-include(\"").append(includeHeader).append("\").\n");
       }
-    } else {
+    } else if (!module.suppressExport()) {
       out.append('\n');
     }
-    out.append("-export([");
-    if (module.exports() != null && !module.exports().isEmpty()) {
-      renderNamedExports(module.exports(), out);
-    } else {
-      renderExports(module.functions(), out);
+
+    if (module.callbacks() != null) {
+      for (Callback callback : module.callbacks()) {
+        render(callback, out);
+      }
     }
-    out.append("]).\n\n");
+
+    if (module.trailingAttributes() != null) {
+      for (ModuleAttribute attribute : module.trailingAttributes()) {
+        render(attribute, out);
+      }
+    }
 
     if (module.typeAliases() != null && !module.typeAliases().isEmpty()) {
+      out.append('\n');
       renderTypeAliases(module.typeAliases(), out);
+      out.append('\n');
+    } else if (!module.suppressExport() && module.includeHeaders() != null) {
       out.append('\n');
     }
 
@@ -77,6 +102,13 @@ public final class ErlangRenderer implements Renderer {
       renderFunctionDefinition(module.functions().get(i), out, true);
       if (i < module.functions().size() - 1) {
         out.append('\n');
+      }
+    }
+
+    if (module.epilogueComments() != null && !module.epilogueComments().isEmpty()) {
+      out.append('\n');
+      for (String comment : module.epilogueComments()) {
+        renderCommentLine(comment, out);
       }
     }
 
@@ -261,6 +293,10 @@ public final class ErlangRenderer implements Renderer {
       }
       render(patterns.get(i), out);
     }
+  }
+
+  private void render(ModuleAttribute attribute, StringBuilder out) {
+    out.append('-').append(attribute.name()).append('(').append(attribute.value()).append(").\n");
   }
 
   private void render(Callback callback, StringBuilder out) {
