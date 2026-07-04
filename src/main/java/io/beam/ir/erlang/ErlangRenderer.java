@@ -503,11 +503,11 @@ public final class ErlangRenderer implements Renderer {
         && record.fields().size() == 1
         && isSingleLineBody(record.fields().get(0).value())) {
       render(record.base(), out, indent);
-      out.append('#').append(record.name()).append("{ ");
+      out.append('#').append(record.name()).append('{');
       RecordField field = record.fields().get(0);
       out.append(field.name()).append(" = ");
       render(field.value(), out, indent);
-      out.append(" }");
+      out.append('}');
       return;
     }
     if (record.base() != null) {
