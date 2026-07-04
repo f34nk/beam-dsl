@@ -522,7 +522,7 @@ public final class ErlangRenderer implements Renderer {
       String linePrefix,
       java.util.function.Consumer<StringBuilder> compactRender) {
     for (Expression argument : arguments) {
-      if (argument instanceof Fun || argument instanceof RecordExpr) {
+      if (argument instanceof Fun fun && !usesCompactFunLayout(fun.clauses())) {
         return true;
       }
     }
@@ -552,6 +552,13 @@ public final class ErlangRenderer implements Renderer {
       }
     }
     if (inlineCount == 0) {
+      if (arguments.size() == 1
+          && singleCallArgumentFitsOnIndentedLine(arguments.get(0), out, indent)) {
+        out.append('\n').append(indent).append(INDENT);
+        render(arguments.get(0), out, indent + INDENT);
+        out.append(')');
+        return;
+      }
       for (int i = 0; i < arguments.size(); i++) {
         if (i > 0) {
           out.append(',');
@@ -726,13 +733,26 @@ public final class ErlangRenderer implements Renderer {
   }
 
   private boolean canUseInlineCallHead(List<Expression> arguments, int inlineCount) {
-    if (inlineCount <= 0 || inlineCount >= arguments.size()) {
-      return inlineCount > 0;
+    if (inlineCount <= 0 || inlineCount > arguments.size()) {
+      return false;
     }
-    Expression firstArgument = arguments.get(0);
-    return !(firstArgument instanceof LocalCallExpr
-        || firstArgument instanceof RemoteCallExpr
-        || firstArgument instanceof ApplyExpr);
+    for (int i = 0; i < inlineCount; i++) {
+      Expression argument = arguments.get(i);
+      if (argument instanceof Fun
+          || argument instanceof LocalCallExpr
+          || argument instanceof RemoteCallExpr
+          || argument instanceof ApplyExpr) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private boolean singleCallArgumentFitsOnIndentedLine(
+      Expression argument, StringBuilder out, String indent) {
+    String linePrefix = currentLinePrefix(out) + '\n' + indent + INDENT;
+    return !exceedsPrintWidthWithLinePrefix(
+        linePrefix, scratch -> render(argument, scratch, indent + INDENT));
   }
 
   private void render(RecordFieldAccessExpr fieldAccess, StringBuilder out, String indent) {

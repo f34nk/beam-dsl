@@ -5,10 +5,7 @@ decode_event_stream(Body) when is_binary(Body) ->
 
 encode_event_stream_event({member, Value}) ->
     Payload = jsone:encode(
-        maps:filter(
-            fun(_, V) -> (V =/= undefined) end,
-            #{<<"value">> => Value#member_event.value}
-        )
+        maps:filter(fun(_, V) -> (V =/= undefined) end, #{<<"value">> => Value#member_event.value})
     ),
     Headers = encode_event_headers(<<"member">>),
     aws_event_stream:frame(Headers, Payload);
