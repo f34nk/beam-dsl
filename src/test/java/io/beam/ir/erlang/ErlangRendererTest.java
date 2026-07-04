@@ -17,15 +17,38 @@ class ErlangRendererTest {
   void rendersAtomPattern() {
     AtomPattern pattern = AtomPattern.of("foo");
     ErlangRenderer renderer = new ErlangRenderer();
-    StringBuilder out = new StringBuilder();
     String funWrap =
         renderer.renderExpression(Fun.of(List.of(FunClause.of(pattern, null, AtomExpr.of("bar")))));
-    // fun (foo) -> bar end
-    String expected = """
-        fun
-            (foo) -> bar
+    assertEquals("fun(foo) -> bar end", funWrap);
+  }
+
+  @Test
+  void rendersZeroArityFunWithBlockBody() {
+    Fun fun =
+        Fun.of(
+            List.of(
+                FunClause.of(
+                    List.of(),
+                    null,
+                    MatchExpr.bind(
+                        "Req",
+                        AtomExpr.of("ok"),
+                        CaseExpr.of(
+                            Variable.of("Req"),
+                            List.of(
+                                Clause.of(
+                                    TuplePattern.of(
+                                        List.of(AtomPattern.of("ok"), WildcardPattern.of())),
+                                    AtomExpr.of("done"))))))));
+    String expected =
+        """
+        fun() ->
+            Req = ok,
+            case Req of
+                {ok, _} -> done
+            end
         end""";
-    assertEquals(expected, funWrap);
+    assertEquals(expected, new ErlangRenderer().renderExpression(fun));
   }
 
   @Test
@@ -90,7 +113,8 @@ class ErlangRendererTest {
                 BinarySegmentPattern.of(WildcardPattern.of(), "binary")));
     String expected =
         "<<Y:4/binary, \"-\", Mo:2/binary, \"-\", D:2/binary, \"T\", H:2/binary, \":\","
-            + " Mi:2/binary, \":\", S:2/binary, _/binary>>";
+            + " Mi:2/binary, \":\",\n"
+            + "    S:2/binary, _/binary>>";
     assertEquals(expected, new ErlangRenderer().renderPattern(pattern));
   }
 
@@ -126,6 +150,23 @@ class ErlangRendererTest {
         end""";
 
     assertEquals(expected, result);
+  }
+
+  @Test
+  void rendersCaseWithBrokenScrutinee() {
+    Expression expression = GoldenIrFixturesExpressions.httpChecksumResponseGuardExpression();
+    String expected =
+        """
+        case
+            validate_response_checksum(Body, Headers, [
+                <<"x-amz-checksum-crc32c">>,
+                <<"x-amz-checksum-sha256">>
+            ])
+        of
+            ok -> {ok, Output};
+            {error, Reason} -> {error, {checksum_validation_failed, Reason}}
+        end""";
+    assertEquals(expected, new ErlangRenderer().renderExpression(expression));
   }
 
   @Test
@@ -218,6 +259,21 @@ class ErlangRendererTest {
         %% Works with integers.
         -spec inc(integer()) -> integer().
         inc(X) -> (X + 1).
+        """;
+    assertEquals(expected, result);
+  }
+
+  @Test
+  void rendersFunctionWithMixedClauseWidths() {
+    String result = new ErlangRenderer().renderFunction(GoldenIrFixtures.mapDecodeColorLabelsFunction());
+    String expected =
+        """
+        decode_color_labels(undefined) ->
+            undefined;
+        decode_color_labels(null) ->
+            undefined;
+        decode_color_labels(Map) when is_map(Map) ->
+            maps:from_list([{decode_color(K), V} || {K, V} <- maps:to_list(Map)]).
         """;
     assertEquals(expected, result);
   }
@@ -367,7 +423,8 @@ class ErlangRendererTest {
         decode_get_user_request(#http_request{body = Body}) ->
             Decoded =
                 case Body of
-                    <<>> -> #{};
+                    <<>> ->
+                        #{};
                     _ ->
                         case jsone:try_decode(Body) of
                             {ok, Val, _} -> Val;
@@ -611,8 +668,11 @@ class ErlangRendererTest {
     String expected =
         """
         try
-            <<Y:4/binary, "-", Mo:2/binary, "-", D:2/binary, "T", H:2/binary, ":", Mi:2/binary, ":", S:2/binary, _/binary>> = V,
-            Dt = {{binary_to_integer(Y), binary_to_integer(Mo), binary_to_integer(D)}, {binary_to_integer(H), binary_to_integer(Mi), binary_to_integer(S)}},
+            <<Y:4/binary, "-", Mo:2/binary, "-", D:2/binary, "T", H:2/binary, ":", Mi:2/binary, ":",
+                S:2/binary, _/binary>> = V,
+            Dt = {{binary_to_integer(Y), binary_to_integer(Mo), binary_to_integer(D)}, {
+                binary_to_integer(H), binary_to_integer(Mi), binary_to_integer(S)
+            }},
             GregorianSecs = calendar:datetime_to_gregorian_seconds(Dt),
             EpochSecs = (GregorianSecs - 62167219200),
             Mega = (EpochSecs div 1000000),
@@ -698,6 +758,61 @@ class ErlangRendererTest {
         RemoteCallExpr.of(
             InfixExpr.of(Variable.of("A"), "+", Variable.of("B")), AtomExpr.of("run"), List.of());
     assertEquals("(A + B):run()", new ErlangRenderer().renderExpression(call));
+  }
+
+  @Test
+  void rendersNestedRemoteCallWithVerticalLayout() {
+    LocalCallExpr call =
+        LocalCallExpr.of(
+            "iolist_to_binary",
+            List.of(
+                RemoteCallExpr.of(
+                    "io_lib",
+                    "format",
+                    List.of(
+                        StringExpr.of("~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0BZ"),
+                        ListExpr.of(
+                            List.of(
+                                Variable.of("Y"),
+                                Variable.of("Mo"),
+                                Variable.of("D"),
+                                Variable.of("H"),
+                                Variable.of("Mi"),
+                                Variable.of("S")))))));
+    String expected =
+        """
+        iolist_to_binary(
+            io_lib:format("~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0BZ", [
+                Y,
+                Mo,
+                D,
+                H,
+                Mi,
+                S
+            ])
+        )""";
+    assertEquals(expected, new ErlangRenderer().renderExpression(call));
+  }
+
+  @Test
+  void rendersMapsMergeWithVerticalLayout() {
+    Expression optionalRegion =
+        LocalCallExpr.of(
+            "optional_param",
+            List.of(Variable.of("Config"), AtomExpr.of("region"), BinaryExpr.of("Region")));
+    Expression optionalBucket =
+        LocalCallExpr.of(
+            "optional_param",
+            List.of(Variable.of("Config"), AtomExpr.of("bucket"), BinaryExpr.of("Bucket")));
+    RemoteCallExpr call =
+        RemoteCallExpr.of("maps", "merge", List.of(optionalRegion, optionalBucket));
+    String expected =
+        """
+        maps:merge(
+            optional_param(Config, region, <<\"Region\">>),
+            optional_param(Config, bucket, <<\"Bucket\">>)
+        )""";
+    assertEquals(expected, new ErlangRenderer().renderExpression(call));
   }
 
   @Test

@@ -5,6 +5,28 @@ import java.util.List;
 public final class ErlangRenderer implements Renderer {
 
   private static final String INDENT = "    ";
+  private static final int PRINT_WIDTH = 100;
+
+  /** Render an expression/pattern into a scratch buffer and return its length. */
+  private int compactLength(java.util.function.Consumer<StringBuilder> renderFn) {
+    StringBuilder scratch = new StringBuilder();
+    renderFn.accept(scratch);
+    return scratch.length();
+  }
+
+  /** True when a single-line form would meet or exceed erlfmt's print width. */
+  private boolean exceedsPrintWidth(java.util.function.Consumer<StringBuilder> renderFn) {
+    return compactLength(renderFn) >= PRINT_WIDTH;
+  }
+
+  private boolean exceedsPrintWidthWithLinePrefix(
+      String linePrefix, java.util.function.Consumer<StringBuilder> renderFn) {
+    return linePrefix.length() + compactLength(renderFn) >= PRINT_WIDTH;
+  }
+
+  static int printWidthForTests() {
+    return PRINT_WIDTH;
+  }
 
   @Override
   public String render(Module module) {
@@ -138,7 +160,9 @@ public final class ErlangRenderer implements Renderer {
     render(function.spec(), out);
 
     List<FunctionClause> clauses = function.clauses();
-    boolean multilineClauses = clauses.stream().anyMatch(this::usesMultilineClauseLayout);
+    boolean multilineClauses =
+        clauses.stream()
+            .anyMatch(clause -> usesMultilineFunctionClauseLayout(function.name(), clause));
     for (int i = 0; i < clauses.size(); i++) {
       FunctionClause clause = clauses.get(i);
       out.append(function.name()).append('(');
@@ -169,14 +193,33 @@ public final class ErlangRenderer implements Renderer {
     }
   }
 
-  private boolean usesMultilineClauseLayout(FunctionClause clause) {
+  private boolean usesMultilineFunctionClauseLayout(String name, FunctionClause clause) {
     if (!isSingleLineBody(clause.body())) {
       return true;
     }
     if (hasRecordPattern(clause.patterns())) {
       return true;
     }
-    return isWideCall(clause.body());
+    return exceedsPrintWidth(
+        scratch -> {
+          scratch.append(name).append('(');
+          renderPatterns(clause.patterns(), scratch);
+          scratch.append(')');
+          if (clause.guard() != null) {
+            scratch.append(" when ");
+            render(clause.guard(), scratch);
+          }
+          scratch.append(" -> ");
+          render(clause.body(), scratch, "");
+        })
+        || isWideCall(clause.body());
+  }
+
+  private boolean isWideCall(Expression body) {
+    if (body instanceof LocalCallExpr call) {
+      return call.arguments().size() >= 4;
+    }
+    return false;
   }
 
   private boolean hasRecordPattern(List<Pattern> patterns) {
@@ -184,13 +227,6 @@ public final class ErlangRenderer implements Renderer {
       if (pattern instanceof RecordPattern) {
         return true;
       }
-    }
-    return false;
-  }
-
-  private boolean isWideCall(Expression body) {
-    if (body instanceof LocalCallExpr call) {
-      return call.arguments().size() >= 4;
     }
     return false;
   }
@@ -410,29 +446,24 @@ public final class ErlangRenderer implements Renderer {
   }
 
   private void render(RemoteCallExpr call, StringBuilder out, String indent) {
-    if (useVerticalCallLayout(call.arguments())) {
-      renderRemoteTarget(call.module(), out, indent);
-      out.append(':');
-      renderRemoteTarget(call.function(), out, indent);
-      out.append("(\n");
-      List<Expression> arguments = call.arguments();
-      for (int i = 0; i < arguments.size(); i++) {
-        out.append(indent).append(INDENT);
-        render(arguments.get(i), out, indent + INDENT);
-        if (i < arguments.size() - 1) {
-          out.append(',');
-        }
-        out.append('\n');
-      }
-      out.append(indent).append(')');
-    } else {
-      renderRemoteTarget(call.module(), out, indent);
-      out.append(':');
-      renderRemoteTarget(call.function(), out, indent);
-      out.append('(');
-      renderArguments(call.arguments(), out, indent);
-      out.append(')');
-    }
+    String linePrefix = currentLinePrefix(out);
+    boolean vertical =
+        useVerticalCallLayout(
+            call.arguments(),
+            linePrefix,
+            scratch -> {
+              renderRemoteTarget(call.module(), scratch, indent);
+              scratch.append(':');
+              renderRemoteTarget(call.function(), scratch, indent);
+              scratch.append('(');
+              renderArguments(call.arguments(), scratch, indent);
+              scratch.append(')');
+            });
+    renderRemoteTarget(call.module(), out, indent);
+    out.append(':');
+    renderRemoteTarget(call.function(), out, indent);
+    out.append('(');
+    renderCallArguments(call.arguments(), out, indent, vertical);
   }
 
   private void renderRemoteTarget(Expression target, StringBuilder out, String indent) {
@@ -446,16 +477,35 @@ public final class ErlangRenderer implements Renderer {
   }
 
   private void render(LocalCallExpr call, StringBuilder out, String indent) {
+    String linePrefix = currentLinePrefix(out);
+    boolean vertical =
+        useVerticalCallLayout(
+            call.arguments(),
+            linePrefix,
+            scratch -> {
+              scratch.append(call.function()).append('(');
+              renderArguments(call.arguments(), scratch, indent);
+              scratch.append(')');
+            });
     out.append(call.function()).append('(');
-    renderArguments(call.arguments(), out, indent);
-    out.append(')');
+    renderCallArguments(call.arguments(), out, indent, vertical);
   }
 
   private void render(ApplyExpr apply, StringBuilder out, String indent) {
+    String linePrefix = currentLinePrefix(out);
+    boolean vertical =
+        useVerticalCallLayout(
+            apply.arguments(),
+            linePrefix,
+            scratch -> {
+              render(apply.callee(), scratch, indent);
+              scratch.append('(');
+              renderArguments(apply.arguments(), scratch, indent);
+              scratch.append(')');
+            });
     render(apply.callee(), out, indent);
     out.append('(');
-    renderArguments(apply.arguments(), out, indent);
-    out.append(')');
+    renderCallArguments(apply.arguments(), out, indent, vertical);
   }
 
   private void renderArguments(List<Expression> arguments, StringBuilder out, String indent) {
@@ -467,13 +517,222 @@ public final class ErlangRenderer implements Renderer {
     }
   }
 
-  private boolean useVerticalCallLayout(List<Expression> arguments) {
+  private boolean useVerticalCallLayout(
+      List<Expression> arguments,
+      String linePrefix,
+      java.util.function.Consumer<StringBuilder> compactRender) {
     for (Expression argument : arguments) {
       if (argument instanceof Fun || argument instanceof RecordExpr) {
         return true;
       }
     }
-    return false;
+    return exceedsPrintWidthWithLinePrefix(linePrefix, compactRender);
+  }
+
+  private void renderCallArguments(
+      List<Expression> arguments, StringBuilder out, String indent, boolean vertical) {
+    if (!vertical) {
+      renderArguments(arguments, out, indent);
+      out.append(')');
+      return;
+    }
+
+    if (arguments.isEmpty()) {
+      out.append(')');
+      return;
+    }
+
+    int inlineCount = countInlineCallArguments(arguments, out, indent);
+    if (inlineCount == 0 && arguments.size() == 1 && canHangOpeningBracket(arguments.get(0))) {
+      Expression argument = arguments.get(0);
+      if (callArgumentFitsOpeningBracket(argument, out)) {
+        renderCallArgumentWithOpeningBracket(argument, out, indent);
+        out.append(')');
+        return;
+      }
+    }
+    if (inlineCount == 0) {
+      for (int i = 0; i < arguments.size(); i++) {
+        if (i > 0) {
+          out.append(',');
+        }
+        out.append('\n').append(indent).append(INDENT);
+        render(arguments.get(i), out, indent + INDENT);
+      }
+      out.append('\n').append(indent).append(')');
+      return;
+    }
+
+    for (int i = 0; i < inlineCount; i++) {
+      if (i > 0) {
+        out.append(", ");
+      }
+      render(arguments.get(i), out, indent);
+    }
+    boolean closedHangingList = false;
+    for (int i = inlineCount; i < arguments.size(); i++) {
+      out.append(',');
+      if (callArgumentFitsOnCurrentLine(arguments.get(i), out, indent)) {
+        if (arguments.get(i) instanceof ListExpr list
+            && list.tail() == null
+            && list.elements().size() > 1) {
+          renderListHang(list, out, indent);
+          closedHangingList = i == arguments.size() - 1;
+        } else {
+          out.append(' ');
+          render(arguments.get(i), out, indent);
+        }
+      } else {
+        out.append('\n').append(indent).append(INDENT);
+        render(arguments.get(i), out, indent + INDENT);
+      }
+    }
+    if (closedHangingList) {
+      out.append(')');
+    } else {
+      out.append('\n').append(indent).append(')');
+    }
+  }
+
+  private boolean canHangOpeningBracket(Expression argument) {
+    if (argument instanceof ListComprehensionExpr) {
+      return true;
+    }
+    return argument instanceof ListExpr list && list.tail() == null && list.elements().size() > 1;
+  }
+
+  private boolean callArgumentFitsOpeningBracket(Expression argument, StringBuilder prefix) {
+    String linePrefix = currentLinePrefix(prefix);
+    return !exceedsPrintWidthWithLinePrefix(
+        linePrefix,
+        scratch -> {
+          scratch.append(" [");
+        });
+  }
+
+  private void renderCallArgumentWithOpeningBracket(
+      Expression argument, StringBuilder out, String indent) {
+    if (argument instanceof ListComprehensionExpr comprehension) {
+      if (listComprehensionFitsInlineInCall(comprehension, out)) {
+        out.append('[');
+        render(comprehension.expression(), out, indent);
+        renderListComprehensionQualifiers(comprehension.qualifiers(), out, indent, false);
+        out.append(']');
+        return;
+      }
+      out.append('[').append('\n');
+      out.append(indent).append(INDENT);
+      render(comprehension.expression(), out, indent + INDENT);
+      out.append('\n');
+      out.append(indent).append(" ||");
+      renderListComprehensionQualifiers(comprehension.qualifiers(), out, indent, true);
+      out.append('\n');
+      out.append(indent).append(']');
+      return;
+    }
+    renderListHangAfterOpenParen((ListExpr) argument, out, indent);
+  }
+
+  private boolean listComprehensionFitsInlineInCall(
+      ListComprehensionExpr comprehension, StringBuilder out) {
+    if (usesMultilineListComprehensionLayout(comprehension)) {
+      return false;
+    }
+    String linePrefix = currentLinePrefix(out);
+    return !exceedsPrintWidthWithLinePrefix(
+        linePrefix,
+        scratch -> {
+          scratch.append('[');
+          render(comprehension.expression(), scratch, "");
+          renderListComprehensionQualifiers(comprehension.qualifiers(), scratch, "", false);
+          scratch.append(']');
+        });
+  }
+
+  private void renderListHangAfterOpenParen(ListExpr list, StringBuilder out, String indent) {
+    out.append('[').append('\n');
+    List<Expression> elements = list.elements();
+    for (int i = 0; i < elements.size(); i++) {
+      out.append(indent).append(INDENT);
+      render(elements.get(i), out, indent + INDENT);
+      if (i < elements.size() - 1) {
+        out.append(',');
+      }
+      out.append('\n');
+    }
+    out.append(indent).append(']');
+  }
+
+  private void renderListHang(ListExpr list, StringBuilder out, String indent) {
+    out.append(" [").append('\n');
+    List<Expression> elements = list.elements();
+    for (int i = 0; i < elements.size(); i++) {
+      out.append(indent).append(INDENT);
+      render(elements.get(i), out, indent + INDENT);
+      if (i < elements.size() - 1) {
+        out.append(',');
+      }
+      out.append('\n');
+    }
+    out.append(indent).append(']');
+  }
+
+  private boolean callArgumentFitsOnCurrentLine(
+      Expression argument, StringBuilder prefix, String indent) {
+    String linePrefix = currentLinePrefix(prefix);
+    if (argument instanceof ListExpr list && list.tail() == null && list.elements().size() > 1) {
+      return !exceedsPrintWidthWithLinePrefix(
+          linePrefix,
+          scratch -> {
+            scratch.append(" [");
+          });
+    }
+    return !exceedsPrintWidthWithLinePrefix(
+        linePrefix,
+        scratch -> {
+          scratch.append(' ');
+          render(argument, scratch, indent);
+        });
+  }
+
+  private int countInlineCallArguments(
+      List<Expression> arguments, StringBuilder prefix, String indent) {
+    String linePrefix = currentLinePrefix(prefix);
+    for (int count = arguments.size(); count >= 1; count--) {
+      int inlineCount = count;
+      boolean hasMoreArguments = inlineCount < arguments.size();
+      if (!canUseInlineCallHead(arguments, inlineCount)) {
+        continue;
+      }
+      if (!exceedsPrintWidthWithLinePrefix(
+          linePrefix,
+          scratch -> {
+            for (int i = 0; i < inlineCount; i++) {
+              if (i > 0) {
+                scratch.append(", ");
+              }
+              render(arguments.get(i), scratch, indent);
+            }
+            if (hasMoreArguments) {
+              scratch.append(',');
+            } else {
+              scratch.append(')');
+            }
+          })) {
+        return inlineCount;
+      }
+    }
+    return 0;
+  }
+
+  private boolean canUseInlineCallHead(List<Expression> arguments, int inlineCount) {
+    if (inlineCount <= 0 || inlineCount >= arguments.size()) {
+      return inlineCount > 0;
+    }
+    Expression firstArgument = arguments.get(0);
+    return !(firstArgument instanceof LocalCallExpr
+        || firstArgument instanceof RemoteCallExpr
+        || firstArgument instanceof ApplyExpr);
   }
 
   private void render(RecordFieldAccessExpr fieldAccess, StringBuilder out, String indent) {
@@ -486,11 +745,11 @@ public final class ErlangRenderer implements Renderer {
         && record.fields().size() == 1
         && isSingleLineBody(record.fields().get(0).value())) {
       render(record.base(), out, indent);
-      out.append('#').append(record.name()).append("{ ");
+      out.append('#').append(record.name()).append('{');
       RecordField field = record.fields().get(0);
       out.append(field.name()).append(" = ");
       render(field.value(), out, indent);
-      out.append(" }");
+      out.append('}');
       return;
     }
     if (record.base() != null) {
@@ -513,9 +772,162 @@ public final class ErlangRenderer implements Renderer {
   }
 
   private void render(TupleExpr tuple, StringBuilder out, String indent) {
+    if (!tupleExceedsPrintWidth(tuple)) {
+      out.append('{');
+      renderArguments(tuple.elements(), out, indent);
+      out.append('}');
+      return;
+    }
+    renderTupleWrapped(tuple.elements(), out, indent);
+  }
+
+  private boolean tupleExceedsPrintWidth(TupleExpr tuple) {
+    return exceedsPrintWidth(
+        scratch -> {
+          scratch.append('{');
+          renderFlatArguments(tuple.elements(), scratch);
+          scratch.append('}');
+        });
+  }
+
+  /** Render an expression as a single flat line for print-width measurement. */
+  private void renderFlat(Expression expression, StringBuilder out) {
+    if (expression instanceof AtomExpr atom) {
+      out.append(atom.value());
+    } else if (expression instanceof IntegerExpr integer) {
+      out.append(integer.value());
+    } else if (expression instanceof Variable variable) {
+      out.append(variable.name());
+    } else if (expression instanceof StringExpr string) {
+      out.append('"').append(string.value()).append('"');
+    } else if (expression instanceof MacroExpr macro) {
+      out.append('?').append(macro.name());
+    } else if (expression instanceof InfixExpr infix) {
+      out.append('(');
+      renderFlat(infix.left(), out);
+      out.append(' ').append(infix.operator()).append(' ');
+      renderFlat(infix.right(), out);
+      out.append(')');
+    } else if (expression instanceof RecordFieldAccessExpr fieldAccess) {
+      renderFlat(fieldAccess.receiver(), out);
+      out.append('#').append(fieldAccess.recordName()).append('.').append(fieldAccess.fieldName());
+    } else if (expression instanceof RecordExpr record) {
+      if (record.base() != null) {
+        renderFlat(record.base(), out);
+      }
+      out.append('#').append(record.name()).append('{');
+      List<RecordField> fields = record.fields();
+      for (int i = 0; i < fields.size(); i++) {
+        if (i > 0) {
+          out.append(", ");
+        }
+        RecordField field = fields.get(i);
+        out.append(field.name()).append(" = ");
+        renderFlat(field.value(), out);
+      }
+      out.append('}');
+    } else if (expression instanceof TupleExpr tuple) {
+      out.append('{');
+      renderFlatArguments(tuple.elements(), out);
+      out.append('}');
+    } else if (expression instanceof LocalCallExpr call) {
+      out.append(call.function()).append('(');
+      renderFlatArguments(call.arguments(), out);
+      out.append(')');
+    } else if (expression instanceof RemoteCallExpr call) {
+      renderFlat(call.module(), out);
+      out.append(':');
+      renderFlat(call.function(), out);
+      out.append('(');
+      renderFlatArguments(call.arguments(), out);
+      out.append(')');
+    } else if (expression instanceof ApplyExpr apply) {
+      renderFlat(apply.callee(), out);
+      out.append('(');
+      renderFlatArguments(apply.arguments(), out);
+      out.append(')');
+    } else if (expression instanceof BinaryExpr binary) {
+      out.append("<<");
+      List<BinarySegmentExpr> segments = binary.segments();
+      for (int i = 0; i < segments.size(); i++) {
+        if (i > 0) {
+          out.append(", ");
+        }
+        renderFlat(segments.get(i), out);
+      }
+      out.append(">>");
+    } else if (expression instanceof Fun) {
+      out.append("fun end");
+    } else {
+      render(expression, out, "");
+    }
+  }
+
+  private void renderFlat(BinarySegmentExpr segment, StringBuilder out) {
+    if (segment.literal() != null) {
+      out.append('"').append(segment.literal()).append('"');
+    } else {
+      renderFlat(segment.expression(), out);
+    }
+    renderBinarySegmentSpecifiers(segment.size(), segment.type(), segment.unit(), out);
+  }
+
+  private void renderFlatArguments(List<Expression> arguments, StringBuilder out) {
+    for (int i = 0; i < arguments.size(); i++) {
+      if (i > 0) {
+        out.append(", ");
+      }
+      renderFlat(arguments.get(i), out);
+    }
+  }
+
+  private void renderTupleWrapped(
+      List<Expression> elements, StringBuilder out, String indent) {
     out.append('{');
-    renderArguments(tuple.elements(), out, indent);
+    for (int i = 0; i < elements.size(); i++) {
+      if (i > 0) {
+        out.append(", ");
+      }
+      Expression element = elements.get(i);
+      if (i > 0 && tupleElementNeedsLineBreak(elements, i)) {
+        if (element instanceof TupleExpr inner) {
+          out.append("{\n");
+          out.append(indent).append(INDENT);
+          renderArguments(inner.elements(), out, indent + INDENT);
+          out.append('\n');
+          out.append(indent).append('}');
+        } else {
+          out.append('\n');
+          out.append(indent).append(INDENT);
+          render(element, out, indent + INDENT);
+        }
+      } else {
+        render(element, out, indent);
+      }
+    }
     out.append('}');
+  }
+
+  private boolean tupleElementNeedsLineBreak(List<Expression> elements, int elementIndex) {
+    return exceedsPrintWidth(
+        scratch -> {
+          scratch.append('{');
+          for (int i = 0; i < elementIndex; i++) {
+            if (i > 0) {
+              scratch.append(", ");
+            }
+            renderFlat(elements.get(i), scratch);
+          }
+          scratch.append(", ");
+          renderFlat(elements.get(elementIndex), scratch);
+          scratch.append('}');
+        });
+  }
+
+  private String currentLinePrefix(StringBuilder out) {
+    String text = out.toString();
+    int lastNewline = text.lastIndexOf('\n');
+    return lastNewline < 0 ? text : text.substring(lastNewline + 1);
   }
 
   private void render(MapExpr map, StringBuilder out, String indent) {
@@ -699,8 +1111,28 @@ public final class ErlangRenderer implements Renderer {
   }
 
   private void render(Fun fun, StringBuilder out, String indent) {
-    out.append("fun\n");
     List<FunClause> clauses = fun.clauses();
+    if (usesCompactFunLayout(clauses)) {
+      FunClause clause = clauses.get(0);
+      out.append("fun");
+      renderFunHead(clause, out);
+      out.append(" -> ");
+      render(clause.body(), out, indent);
+      out.append(" end");
+      return;
+    }
+
+    out.append("fun");
+    if (clauses.size() == 1 && clauses.get(0).patterns().isEmpty()) {
+      out.append("() ->\n");
+      out.append(indent).append(INDENT);
+      render(clauses.get(0).body(), out, indent + INDENT);
+      out.append('\n');
+      out.append(indent).append("end");
+      return;
+    }
+
+    out.append('\n');
     for (int i = 0; i < clauses.size(); i++) {
       out.append(indent).append(INDENT);
       renderFunClause(clauses.get(i), out);
@@ -710,6 +1142,38 @@ public final class ErlangRenderer implements Renderer {
       out.append('\n');
     }
     out.append(indent).append("end");
+  }
+
+  private void renderFunHead(FunClause clause, StringBuilder out) {
+    if (clause.patterns().isEmpty()) {
+      out.append("()");
+      return;
+    }
+    out.append('(');
+    renderPatterns(clause.patterns(), out);
+    out.append(')');
+  }
+
+  private boolean usesCompactFunLayout(List<FunClause> clauses) {
+    if (clauses.size() != 1) {
+      return false;
+    }
+    FunClause clause = clauses.get(0);
+    if (clause.guard() != null) {
+      return false;
+    }
+    if (clause.patterns().isEmpty()) {
+      return false;
+    }
+    return isSingleLineBody(clause.body())
+        && !exceedsPrintWidth(
+            scratch -> {
+              scratch.append("fun");
+              renderFunHead(clause, scratch);
+              scratch.append(" -> ");
+              render(clause.body(), scratch, "");
+              scratch.append(" end");
+            });
   }
 
   private void renderFunClause(FunClause clause, StringBuilder out) {
@@ -725,35 +1189,80 @@ public final class ErlangRenderer implements Renderer {
   }
 
   private void render(CaseExpr caseExpr, StringBuilder out, String indent) {
-    out.append("case ");
-    render(caseExpr.expression(), out, indent);
-    out.append(" of\n");
+    if (useMultilineCaseScrutinee(caseExpr.expression(), out, indent)) {
+      out.append("case\n");
+      out.append(indent).append(INDENT);
+      render(caseExpr.expression(), out, indent + INDENT);
+      out.append("\n");
+      out.append(indent).append("of\n");
+    } else {
+      out.append("case ");
+      render(caseExpr.expression(), out, indent);
+      out.append(" of\n");
+    }
 
     List<Clause> clauses = caseExpr.clauses();
+    boolean multilineClauses = caseUsesMultilineClauseLayout(clauses, indent);
     for (int i = 0; i < clauses.size(); i++) {
+      Clause clause = clauses.get(i);
       out.append(indent).append(INDENT);
-      render(clauses.get(i).pattern(), out);
-      if (clauses.get(i).guard() != null) {
+      render(clause.pattern(), out);
+      if (clause.guard() != null) {
         out.append(" when ");
-        render(clauses.get(i).guard(), out);
+        render(clause.guard(), out);
       }
       out.append(" ->");
-      Expression body = clauses.get(i).body();
-      if (usesMultilineCaseBody(body)) {
+      if (multilineClauses) {
         out.append('\n');
         out.append(indent).append(INDENT).append(INDENT);
-        render(body, out, indent + INDENT + INDENT);
+        render(clause.body(), out, indent + INDENT + INDENT);
+      } else if (usesMultilineCaseBody(clause.body())) {
+        out.append('\n');
+        out.append(indent).append(INDENT).append(INDENT);
+        render(clause.body(), out, indent + INDENT + INDENT);
       } else {
         out.append(' ');
-        render(body, out, indent + INDENT);
+        render(clause.body(), out, indent + INDENT);
       }
       if (i < clauses.size() - 1) {
         out.append(';');
       }
       out.append('\n');
     }
-
     out.append(indent).append("end");
+  }
+
+  private boolean useMultilineCaseScrutinee(
+      Expression expression, StringBuilder out, String indent) {
+    String linePrefix = currentLinePrefix(out);
+    return exceedsPrintWidthWithLinePrefix(
+        linePrefix,
+        scratch -> {
+          scratch.append("case ");
+          render(expression, scratch, indent);
+          scratch.append(" of");
+        });
+  }
+
+  private boolean caseUsesMultilineClauseLayout(List<Clause> clauses, String indent) {
+    for (Clause clause : clauses) {
+      if (usesMultilineCaseBody(clause.body())) {
+        return true;
+      }
+      if (exceedsPrintWidth(
+          scratch -> {
+            render(clause.pattern(), scratch);
+            if (clause.guard() != null) {
+              scratch.append(" when ");
+              render(clause.guard(), scratch);
+            }
+            scratch.append(" -> ");
+            render(clause.body(), scratch, indent);
+          })) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private boolean usesMultilineCaseBody(Expression body) {
@@ -772,16 +1281,22 @@ public final class ErlangRenderer implements Renderer {
     out.append(indent).append("catch\n");
 
     List<Clause> clauses = tryExpr.catchClauses();
+    boolean multilineClauses = caseUsesMultilineClauseLayout(clauses, indent);
     for (int i = 0; i < clauses.size(); i++) {
+      Clause clause = clauses.get(i);
       out.append(indent).append(INDENT);
-      render(clauses.get(i).pattern(), out);
-      if (clauses.get(i).guard() != null) {
+      render(clause.pattern(), out);
+      if (clause.guard() != null) {
         out.append(" when ");
-        render(clauses.get(i).guard(), out);
+        render(clause.guard(), out);
       }
       out.append(" ->");
-      Expression catchBody = clauses.get(i).body();
-      if (usesMultilineCaseBody(catchBody)) {
+      Expression catchBody = clause.body();
+      if (multilineClauses) {
+        out.append('\n');
+        out.append(indent).append(INDENT).append(INDENT);
+        render(catchBody, out, indent + INDENT + INDENT);
+      } else if (usesMultilineCaseBody(catchBody)) {
         out.append('\n');
         out.append(indent).append(INDENT).append(INDENT);
         render(catchBody, out, indent + INDENT + INDENT);
@@ -851,6 +1366,10 @@ public final class ErlangRenderer implements Renderer {
       out.append("<<\"").append(segments.get(0).literal()).append("\">>");
       return;
     }
+    if (shouldWrapBinaryExprSegments(segments, out, indent)) {
+      renderBinaryExprSegmentsMultiline(segments, out, indent);
+      return;
+    }
     out.append("<<");
     for (int i = 0; i < segments.size(); i++) {
       if (i > 0) {
@@ -859,6 +1378,117 @@ public final class ErlangRenderer implements Renderer {
       render(segments.get(i), out, indent);
     }
     out.append(">>");
+  }
+
+  private boolean shouldWrapBinaryExprSegments(
+      List<BinarySegmentExpr> segments, StringBuilder out, String indent) {
+    String linePrefix = currentLinePrefix(out);
+    return binarySegmentsExceedPrintWidth(
+        segments.size(),
+        linePrefix,
+        (index, scratch) -> render(segments.get(index), scratch, indent));
+  }
+
+  private void renderBinaryExprSegmentsMultiline(
+      List<BinarySegmentExpr> segments, StringBuilder out, String indent) {
+    String linePrefix = currentLinePrefix(out);
+    int breakIndex =
+        findBinarySegmentBreakIndex(
+            segments.size(),
+            linePrefix,
+            (index, scratch) -> render(segments.get(index), scratch, indent));
+    out.append("<<");
+    for (int i = 0; i < breakIndex; i++) {
+      if (i > 0) {
+        out.append(", ");
+      }
+      render(segments.get(i), out, indent);
+    }
+    out.append(",\n");
+    out.append(linePrefix).append(INDENT);
+    for (int i = breakIndex; i < segments.size(); i++) {
+      if (i > breakIndex) {
+        out.append(", ");
+      }
+      render(segments.get(i), out, indent + INDENT);
+    }
+    out.append(">>");
+  }
+
+  private boolean shouldWrapBinaryPatternSegments(
+      List<BinarySegmentPattern> segments, String linePrefix) {
+    return binarySegmentsExceedPrintWidth(
+        segments.size(),
+        linePrefix,
+        (index, scratch) -> render(segments.get(index), scratch));
+  }
+
+  private void renderBinaryPatternSegmentsMultiline(
+      List<BinarySegmentPattern> segments, StringBuilder out, String linePrefix) {
+    int breakIndex =
+        findBinarySegmentBreakIndex(
+            segments.size(),
+            linePrefix,
+            (index, scratch) -> render(segments.get(index), scratch));
+    out.append("<<");
+    for (int i = 0; i < breakIndex; i++) {
+      if (i > 0) {
+        out.append(", ");
+      }
+      render(segments.get(i), out);
+    }
+    out.append(",\n");
+    out.append(linePrefix).append(INDENT);
+    for (int i = breakIndex; i < segments.size(); i++) {
+      if (i > breakIndex) {
+        out.append(", ");
+      }
+      render(segments.get(i), out);
+    }
+    out.append(">>");
+  }
+
+  private boolean binarySegmentsExceedPrintWidth(
+      int segmentCount,
+      String linePrefix,
+      java.util.function.BiConsumer<Integer, StringBuilder> segmentRenderer) {
+    return exceedsPrintWidth(
+        scratch -> {
+          scratch.append(linePrefix);
+          scratch.append("<<");
+          for (int i = 0; i < segmentCount; i++) {
+            if (i > 0) {
+              scratch.append(", ");
+            }
+            segmentRenderer.accept(i, scratch);
+          }
+          scratch.append(">>");
+        });
+  }
+
+  private int findBinarySegmentBreakIndex(
+      int segmentCount,
+      String linePrefix,
+      java.util.function.BiConsumer<Integer, StringBuilder> segmentRenderer) {
+    for (int breakIndex = segmentCount - 1; breakIndex >= 1; breakIndex--) {
+      final int firstLineSegmentCount = breakIndex;
+      if (compactLength(
+              scratch -> {
+                scratch.append(linePrefix);
+                scratch.append("<<");
+                for (int i = 0; i < firstLineSegmentCount; i++) {
+                  if (i > 0) {
+                    scratch.append(", ");
+                  }
+                  segmentRenderer.accept(i, scratch);
+                }
+                scratch.append(',');
+              })
+          < PRINT_WIDTH) {
+        return breakIndex;
+      }
+    }
+    return 1;
   }
 
   private void render(BinarySegmentExpr segment, StringBuilder out, String indent) {
@@ -886,6 +1516,11 @@ public final class ErlangRenderer implements Renderer {
     }
     if (segments.size() == 1 && isSimpleLiteralSegment(segments.get(0))) {
       out.append("<<\"").append(segments.get(0).literal()).append("\">>");
+      return;
+    }
+    String linePrefix = currentLinePrefix(out);
+    if (shouldWrapBinaryPatternSegments(segments, linePrefix)) {
+      renderBinaryPatternSegmentsMultiline(segments, out, linePrefix);
       return;
     }
     out.append("<<");
