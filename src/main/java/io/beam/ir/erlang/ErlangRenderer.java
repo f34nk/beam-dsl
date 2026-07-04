@@ -34,6 +34,12 @@ public final class ErlangRenderer implements Renderer {
     return out.toString();
   }
 
+  String renderTypeAliasForTest(TypeAlias typeAlias) {
+    StringBuilder out = new StringBuilder();
+    render(typeAlias, out);
+    return out.toString();
+  }
+
   @Override
   public String render(Module module) {
     if (module.verbatimOrNull() != null) {
@@ -138,12 +144,46 @@ public final class ErlangRenderer implements Renderer {
 
   private void renderTypeAliases(List<TypeAlias> typeAliases, StringBuilder out) {
     for (TypeAlias typeAlias : typeAliases) {
-      out.append("-type ")
-          .append(typeAlias.name())
-          .append(" :: ")
-          .append(typeAlias.definition())
-          .append(".\n");
+      render(typeAlias, out);
     }
+  }
+
+  private void render(TypeAlias typeAlias, StringBuilder out) {
+    if (typeAlias.preambleCommentsOrNull() != null) {
+      for (String comment : typeAlias.preambleCommentsOrNull()) {
+        renderCommentLine(comment, out);
+      }
+    }
+    String typeName = typeAlias.name().endsWith("()") ? typeAlias.name() : typeAlias.name() + "()";
+    List<String> variants = typeAlias.variantsOrNull();
+    if (variants != null && variants.size() > 2) {
+      out.append("-type ").append(typeName).append(" ::\n");
+      for (int i = 0; i < variants.size(); i++) {
+        if (i == 0) {
+          out.append(INDENT).append(variants.get(i));
+        } else {
+          out.append(INDENT).append("| ").append(variants.get(i));
+        }
+        if (i == variants.size() - 1) {
+          out.append('.');
+        }
+        out.append('\n');
+      }
+      return;
+    }
+    String line = "-type " + typeName + " :: " + typeAlias.definition();
+    if (line.length() <= PRINT_WIDTH) {
+      out.append(line).append(".\n");
+      return;
+    }
+    int split = typeAlias.definition().indexOf(" | ");
+    if (split < 0) {
+      out.append(line).append(".\n");
+      return;
+    }
+    out.append("-type ").append(typeName).append(" ::\n");
+    out.append(INDENT).append(typeAlias.definition(), 0, split).append('\n');
+    out.append(INDENT).append("| ").append(typeAlias.definition().substring(split + 3)).append(".\n");
   }
 
   @Override

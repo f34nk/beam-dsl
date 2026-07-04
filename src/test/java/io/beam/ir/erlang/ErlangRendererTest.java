@@ -1000,6 +1000,41 @@ class ErlangRendererTest {
   }
 
   @Test
+  void rendersTypeAliasWithPreamble() {
+    TypeAlias alias = TypeAlias.of("pa_blob", "binary()", List.of("@doc A blob payload."));
+    assertEquals(
+        "%% @doc A blob payload.\n-type pa_blob() :: binary().\n",
+        new ErlangRenderer().renderTypeAliasForTest(alias));
+  }
+
+  @Test
+  void rendersUnionTypeMultiline() {
+    TypeAlias alias =
+        TypeAlias.union(
+            "basic_union",
+            List.of(
+                "{text, basic_string()}",
+                "{number, basic_integer()}",
+                "{flag, basic_boolean()}",
+                "{unknown, binary()}"));
+    String expected =
+        """
+        -type basic_union() ::
+            {text, basic_string()}
+            | {number, basic_integer()}
+            | {flag, basic_boolean()}
+            | {unknown, binary()}.
+        """;
+    assertEquals(expected, new ErlangRenderer().renderTypeAliasForTest(alias));
+  }
+
+  @Test
+  void rendersTypeAliasAppendsAritySuffix() {
+    TypeAlias alias = TypeAlias.of("basic_item", "#basic_item{}");
+    assertEquals("-type basic_item() :: #basic_item{}.\n", new ErlangRenderer().renderTypeAliasForTest(alias));
+  }
+
+  @Test
   void rendersBehaviourModuleWithCallbacks() {
     Module module =
         Module.behaviour(
