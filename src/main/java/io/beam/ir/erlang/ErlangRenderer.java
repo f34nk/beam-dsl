@@ -385,10 +385,26 @@ public final class ErlangRenderer implements Renderer {
   }
 
   private void render(RecordDef record, StringBuilder out) {
-    out.append("-record(").append(record.name()).append(", {\n");
     List<TypedField> fields = record.fields();
+    if (fields.isEmpty()) {
+      out.append("-record(").append(record.name()).append(", {}).\n");
+      return;
+    }
+    out.append("-record(").append(record.name()).append(", {\n");
     for (int i = 0; i < fields.size(); i++) {
-      out.append(INDENT).append(fields.get(i).name()).append(" :: ").append(fields.get(i).type());
+      TypedField field = fields.get(i);
+      if (field.fieldCommentsOrNull() != null) {
+        for (String comment : field.fieldCommentsOrNull()) {
+          out.append(INDENT).append("%% ").append(comment).append('\n');
+        }
+      }
+      out.append(INDENT);
+      if (field.defaultValueOrNull() != null) {
+        out.append(field.name()).append(" = ").append(field.defaultValueOrNull());
+      } else {
+        out.append(field.name());
+      }
+      out.append(" :: ").append(field.type());
       if (i < fields.size() - 1) {
         out.append(',');
       }

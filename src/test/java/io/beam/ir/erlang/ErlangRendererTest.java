@@ -966,6 +966,40 @@ class ErlangRendererTest {
   }
 
   @Test
+  void rendersEmptyRecord() {
+    Header header =
+        Header.of(List.of(), List.of(RecordDef.of("health_check_input", List.of())), null);
+    assertEquals("-record(health_check_input, {}).\n", new ErlangRenderer().render(header));
+  }
+
+  @Test
+  void rendersRecordWithDefaultAndFieldComments() {
+    Header header =
+        Header.of(
+            List.of(),
+            List.of(
+                RecordDef.of(
+                    "service_unavailable",
+                    List.of(
+                        TypedField.of("message", "binary() | undefined"),
+                        TypedField.of(
+                            "'__beam_error_kind'",
+                            "client | server",
+                            "server",
+                            List.of("fault: server | retryable: true | throttling: false"))))),
+            null);
+    String expected =
+        """
+        -record(service_unavailable, {
+            message :: binary() | undefined,
+            %% fault: server | retryable: true | throttling: false
+            '__beam_error_kind' = server :: client | server
+        }).
+        """;
+    assertEquals(expected, new ErlangRenderer().render(header));
+  }
+
+  @Test
   void rendersBehaviourModuleWithCallbacks() {
     Module module =
         Module.behaviour(
