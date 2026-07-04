@@ -19,6 +19,11 @@ public final class ErlangRenderer implements Renderer {
     return compactLength(renderFn) >= PRINT_WIDTH;
   }
 
+  private boolean exceedsPrintWidthWithLinePrefix(
+      String linePrefix, java.util.function.Consumer<StringBuilder> renderFn) {
+    return linePrefix.length() + compactLength(renderFn) >= PRINT_WIDTH;
+  }
+
   static int printWidthForTests() {
     return PRINT_WIDTH;
   }
@@ -427,29 +432,24 @@ public final class ErlangRenderer implements Renderer {
   }
 
   private void render(RemoteCallExpr call, StringBuilder out, String indent) {
-    if (useVerticalCallLayout(call.arguments())) {
-      renderRemoteTarget(call.module(), out, indent);
-      out.append(':');
-      renderRemoteTarget(call.function(), out, indent);
-      out.append("(\n");
-      List<Expression> arguments = call.arguments();
-      for (int i = 0; i < arguments.size(); i++) {
-        out.append(indent).append(INDENT);
-        render(arguments.get(i), out, indent + INDENT);
-        if (i < arguments.size() - 1) {
-          out.append(',');
-        }
-        out.append('\n');
-      }
-      out.append(indent).append(')');
-    } else {
-      renderRemoteTarget(call.module(), out, indent);
-      out.append(':');
-      renderRemoteTarget(call.function(), out, indent);
-      out.append('(');
-      renderArguments(call.arguments(), out, indent);
-      out.append(')');
-    }
+    String linePrefix = currentLinePrefix(out);
+    boolean vertical =
+        useVerticalCallLayout(
+            call.arguments(),
+            linePrefix,
+            scratch -> {
+              renderRemoteTarget(call.module(), scratch, indent);
+              scratch.append(':');
+              renderRemoteTarget(call.function(), scratch, indent);
+              scratch.append('(');
+              renderArguments(call.arguments(), scratch, indent);
+              scratch.append(')');
+            });
+    renderRemoteTarget(call.module(), out, indent);
+    out.append(':');
+    renderRemoteTarget(call.function(), out, indent);
+    out.append('(');
+    renderCallArguments(call.arguments(), out, indent, vertical);
   }
 
   private void renderRemoteTarget(Expression target, StringBuilder out, String indent) {
@@ -463,16 +463,35 @@ public final class ErlangRenderer implements Renderer {
   }
 
   private void render(LocalCallExpr call, StringBuilder out, String indent) {
+    String linePrefix = currentLinePrefix(out);
+    boolean vertical =
+        useVerticalCallLayout(
+            call.arguments(),
+            linePrefix,
+            scratch -> {
+              scratch.append(call.function()).append('(');
+              renderArguments(call.arguments(), scratch, indent);
+              scratch.append(')');
+            });
     out.append(call.function()).append('(');
-    renderArguments(call.arguments(), out, indent);
-    out.append(')');
+    renderCallArguments(call.arguments(), out, indent, vertical);
   }
 
   private void render(ApplyExpr apply, StringBuilder out, String indent) {
+    String linePrefix = currentLinePrefix(out);
+    boolean vertical =
+        useVerticalCallLayout(
+            apply.arguments(),
+            linePrefix,
+            scratch -> {
+              render(apply.callee(), scratch, indent);
+              scratch.append('(');
+              renderArguments(apply.arguments(), scratch, indent);
+              scratch.append(')');
+            });
     render(apply.callee(), out, indent);
     out.append('(');
-    renderArguments(apply.arguments(), out, indent);
-    out.append(')');
+    renderCallArguments(apply.arguments(), out, indent, vertical);
   }
 
   private void renderArguments(List<Expression> arguments, StringBuilder out, String indent) {
@@ -484,13 +503,145 @@ public final class ErlangRenderer implements Renderer {
     }
   }
 
-  private boolean useVerticalCallLayout(List<Expression> arguments) {
+  private boolean useVerticalCallLayout(
+      List<Expression> arguments,
+      String linePrefix,
+      java.util.function.Consumer<StringBuilder> compactRender) {
     for (Expression argument : arguments) {
       if (argument instanceof Fun || argument instanceof RecordExpr) {
         return true;
       }
     }
-    return false;
+    return exceedsPrintWidthWithLinePrefix(linePrefix, compactRender);
+  }
+
+  private void renderCallArguments(
+      List<Expression> arguments, StringBuilder out, String indent, boolean vertical) {
+    if (!vertical) {
+      renderArguments(arguments, out, indent);
+      out.append(')');
+      return;
+    }
+
+    if (arguments.isEmpty()) {
+      out.append(')');
+      return;
+    }
+
+    int inlineCount = countInlineCallArguments(arguments, out, indent);
+    if (inlineCount == 0) {
+      for (int i = 0; i < arguments.size(); i++) {
+        if (i > 0) {
+          out.append(',');
+        }
+        out.append('\n').append(indent).append(INDENT);
+        render(arguments.get(i), out, indent + INDENT);
+      }
+      out.append('\n').append(indent).append(')');
+      return;
+    }
+
+    for (int i = 0; i < inlineCount; i++) {
+      if (i > 0) {
+        out.append(", ");
+      }
+      render(arguments.get(i), out, indent);
+    }
+    boolean closedHangingList = false;
+    for (int i = inlineCount; i < arguments.size(); i++) {
+      out.append(',');
+      if (callArgumentFitsOnCurrentLine(arguments.get(i), out, indent)) {
+        if (arguments.get(i) instanceof ListExpr list
+            && list.tail() == null
+            && list.elements().size() > 1) {
+          renderListHang(list, out, indent);
+          closedHangingList = i == arguments.size() - 1;
+        } else {
+          out.append(' ');
+          render(arguments.get(i), out, indent);
+        }
+      } else {
+        out.append('\n').append(indent).append(INDENT);
+        render(arguments.get(i), out, indent + INDENT);
+      }
+    }
+    if (closedHangingList) {
+      out.append(')');
+    } else {
+      out.append('\n').append(indent).append(')');
+    }
+  }
+
+  private void renderListHang(ListExpr list, StringBuilder out, String indent) {
+    out.append(" [").append('\n');
+    List<Expression> elements = list.elements();
+    for (int i = 0; i < elements.size(); i++) {
+      out.append(indent).append(INDENT);
+      render(elements.get(i), out, indent + INDENT);
+      if (i < elements.size() - 1) {
+        out.append(',');
+      }
+      out.append('\n');
+    }
+    out.append(indent).append(']');
+  }
+
+  private boolean callArgumentFitsOnCurrentLine(
+      Expression argument, StringBuilder prefix, String indent) {
+    String linePrefix = currentLinePrefix(prefix);
+    if (argument instanceof ListExpr list && list.tail() == null && list.elements().size() > 1) {
+      return !exceedsPrintWidthWithLinePrefix(
+          linePrefix,
+          scratch -> {
+            scratch.append(" [");
+          });
+    }
+    return !exceedsPrintWidthWithLinePrefix(
+        linePrefix,
+        scratch -> {
+          scratch.append(' ');
+          render(argument, scratch, indent);
+        });
+  }
+
+  private int countInlineCallArguments(
+      List<Expression> arguments, StringBuilder prefix, String indent) {
+    String linePrefix = currentLinePrefix(prefix);
+    for (int count = arguments.size(); count >= 1; count--) {
+      int inlineCount = count;
+      boolean hasMoreArguments = inlineCount < arguments.size();
+      if (!canUseInlineCallHead(arguments, inlineCount)) {
+        continue;
+      }
+      if (!exceedsPrintWidthWithLinePrefix(
+          linePrefix,
+          scratch -> {
+            for (int i = 0; i < inlineCount; i++) {
+              if (i > 0) {
+                scratch.append(", ");
+              }
+              render(arguments.get(i), scratch, indent);
+            }
+            if (hasMoreArguments) {
+              scratch.append(',');
+            } else {
+              scratch.append(')');
+            }
+          })) {
+        return inlineCount;
+      }
+    }
+    return 0;
+  }
+
+  private boolean canUseInlineCallHead(List<Expression> arguments, int inlineCount) {
+    if (inlineCount <= 0 || inlineCount >= arguments.size()) {
+      return inlineCount > 0;
+    }
+    Expression firstArgument = arguments.get(0);
+    return !(firstArgument instanceof LocalCallExpr
+        || firstArgument instanceof RemoteCallExpr
+        || firstArgument instanceof ApplyExpr);
   }
 
   private void render(RecordFieldAccessExpr fieldAccess, StringBuilder out, String indent) {

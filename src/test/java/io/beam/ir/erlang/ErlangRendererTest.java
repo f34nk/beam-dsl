@@ -728,6 +728,61 @@ class ErlangRendererTest {
   }
 
   @Test
+  void rendersNestedRemoteCallWithVerticalLayout() {
+    LocalCallExpr call =
+        LocalCallExpr.of(
+            "iolist_to_binary",
+            List.of(
+                RemoteCallExpr.of(
+                    "io_lib",
+                    "format",
+                    List.of(
+                        StringExpr.of("~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0BZ"),
+                        ListExpr.of(
+                            List.of(
+                                Variable.of("Y"),
+                                Variable.of("Mo"),
+                                Variable.of("D"),
+                                Variable.of("H"),
+                                Variable.of("Mi"),
+                                Variable.of("S")))))));
+    String expected =
+        """
+        iolist_to_binary(
+            io_lib:format("~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0BZ", [
+                Y,
+                Mo,
+                D,
+                H,
+                Mi,
+                S
+            ])
+        )""";
+    assertEquals(expected, new ErlangRenderer().renderExpression(call));
+  }
+
+  @Test
+  void rendersMapsMergeWithVerticalLayout() {
+    Expression optionalRegion =
+        LocalCallExpr.of(
+            "optional_param",
+            List.of(Variable.of("Config"), AtomExpr.of("region"), BinaryExpr.of("Region")));
+    Expression optionalBucket =
+        LocalCallExpr.of(
+            "optional_param",
+            List.of(Variable.of("Config"), AtomExpr.of("bucket"), BinaryExpr.of("Bucket")));
+    RemoteCallExpr call =
+        RemoteCallExpr.of("maps", "merge", List.of(optionalRegion, optionalBucket));
+    String expected =
+        """
+        maps:merge(
+            optional_param(Config, region, <<\"Region\">>),
+            optional_param(Config, bucket, <<\"Bucket\">>)
+        )""";
+    assertEquals(expected, new ErlangRenderer().renderExpression(call));
+  }
+
+  @Test
   void rendersBlockExprWithNewlines() {
     Expression block =
         BlockExpr.newlineSeparated(
