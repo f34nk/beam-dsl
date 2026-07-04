@@ -153,6 +153,23 @@ class ErlangRendererTest {
   }
 
   @Test
+  void rendersCaseWithBrokenScrutinee() {
+    Expression expression = GoldenIrFixturesExpressions.httpChecksumResponseGuardExpression();
+    String expected =
+        """
+        case
+            validate_response_checksum(Body, Headers, [
+                <<"x-amz-checksum-crc32c">>,
+                <<"x-amz-checksum-sha256">>
+            ])
+        of
+            ok -> {ok, Output};
+            {error, Reason} -> {error, {checksum_validation_failed, Reason}}
+        end""";
+    assertEquals(expected, new ErlangRenderer().renderExpression(expression));
+  }
+
+  @Test
   void rendersFunction() {
     // Define a function named "inc" with one clause: inc(X) -> X + 1.
     Function function =
@@ -391,7 +408,8 @@ class ErlangRendererTest {
         decode_get_user_request(#http_request{body = Body}) ->
             Decoded =
                 case Body of
-                    <<>> -> #{};
+                    <<>> ->
+                        #{};
                     _ ->
                         case jsone:try_decode(Body) of
                             {ok, Val, _} -> Val;

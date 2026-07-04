@@ -529,6 +529,14 @@ public final class ErlangRenderer implements Renderer {
     }
 
     int inlineCount = countInlineCallArguments(arguments, out, indent);
+    if (inlineCount == 0 && arguments.size() == 1 && canHangOpeningBracket(arguments.get(0))) {
+      Expression argument = arguments.get(0);
+      if (callArgumentFitsOpeningBracket(argument, out)) {
+        renderCallArgumentWithOpeningBracket(argument, out, indent);
+        out.append(')');
+        return;
+      }
+    }
     if (inlineCount == 0) {
       for (int i = 0; i < arguments.size(); i++) {
         if (i > 0) {
@@ -570,6 +578,52 @@ public final class ErlangRenderer implements Renderer {
     } else {
       out.append('\n').append(indent).append(')');
     }
+  }
+
+  private boolean canHangOpeningBracket(Expression argument) {
+    if (argument instanceof ListComprehensionExpr) {
+      return true;
+    }
+    return argument instanceof ListExpr list && list.tail() == null && list.elements().size() > 1;
+  }
+
+  private boolean callArgumentFitsOpeningBracket(Expression argument, StringBuilder prefix) {
+    String linePrefix = currentLinePrefix(prefix);
+    return !exceedsPrintWidthWithLinePrefix(
+        linePrefix,
+        scratch -> {
+          scratch.append(" [");
+        });
+  }
+
+  private void renderCallArgumentWithOpeningBracket(
+      Expression argument, StringBuilder out, String indent) {
+    if (argument instanceof ListComprehensionExpr comprehension) {
+      out.append('[').append('\n');
+      out.append(indent).append(INDENT);
+      render(comprehension.expression(), out, indent + INDENT);
+      out.append('\n');
+      out.append(indent).append(" ||");
+      renderListComprehensionQualifiers(comprehension.qualifiers(), out, indent, true);
+      out.append('\n');
+      out.append(indent).append(']');
+      return;
+    }
+    renderListHangAfterOpenParen((ListExpr) argument, out, indent);
+  }
+
+  private void renderListHangAfterOpenParen(ListExpr list, StringBuilder out, String indent) {
+    out.append('[').append('\n');
+    List<Expression> elements = list.elements();
+    for (int i = 0; i < elements.size(); i++) {
+      out.append(indent).append(INDENT);
+      render(elements.get(i), out, indent + INDENT);
+      if (i < elements.size() - 1) {
+        out.append(',');
+      }
+      out.append('\n');
+    }
+    out.append(indent).append(']');
   }
 
   private void renderListHang(ListExpr list, StringBuilder out, String indent) {
@@ -1098,35 +1152,80 @@ public final class ErlangRenderer implements Renderer {
   }
 
   private void render(CaseExpr caseExpr, StringBuilder out, String indent) {
-    out.append("case ");
-    render(caseExpr.expression(), out, indent);
-    out.append(" of\n");
+    if (useMultilineCaseScrutinee(caseExpr.expression(), out, indent)) {
+      out.append("case\n");
+      out.append(indent).append(INDENT);
+      render(caseExpr.expression(), out, indent + INDENT);
+      out.append("\n");
+      out.append(indent).append("of\n");
+    } else {
+      out.append("case ");
+      render(caseExpr.expression(), out, indent);
+      out.append(" of\n");
+    }
 
     List<Clause> clauses = caseExpr.clauses();
+    boolean multilineClauses = caseUsesMultilineClauseLayout(clauses, indent);
     for (int i = 0; i < clauses.size(); i++) {
+      Clause clause = clauses.get(i);
       out.append(indent).append(INDENT);
-      render(clauses.get(i).pattern(), out);
-      if (clauses.get(i).guard() != null) {
+      render(clause.pattern(), out);
+      if (clause.guard() != null) {
         out.append(" when ");
-        render(clauses.get(i).guard(), out);
+        render(clause.guard(), out);
       }
       out.append(" ->");
-      Expression body = clauses.get(i).body();
-      if (usesMultilineCaseBody(body)) {
+      if (multilineClauses) {
         out.append('\n');
         out.append(indent).append(INDENT).append(INDENT);
-        render(body, out, indent + INDENT + INDENT);
+        render(clause.body(), out, indent + INDENT + INDENT);
+      } else if (usesMultilineCaseBody(clause.body())) {
+        out.append('\n');
+        out.append(indent).append(INDENT).append(INDENT);
+        render(clause.body(), out, indent + INDENT + INDENT);
       } else {
         out.append(' ');
-        render(body, out, indent + INDENT);
+        render(clause.body(), out, indent + INDENT);
       }
       if (i < clauses.size() - 1) {
         out.append(';');
       }
       out.append('\n');
     }
-
     out.append(indent).append("end");
+  }
+
+  private boolean useMultilineCaseScrutinee(
+      Expression expression, StringBuilder out, String indent) {
+    String linePrefix = currentLinePrefix(out);
+    return exceedsPrintWidthWithLinePrefix(
+        linePrefix,
+        scratch -> {
+          scratch.append("case ");
+          render(expression, scratch, indent);
+          scratch.append(" of");
+        });
+  }
+
+  private boolean caseUsesMultilineClauseLayout(List<Clause> clauses, String indent) {
+    for (Clause clause : clauses) {
+      if (usesMultilineCaseBody(clause.body())) {
+        return true;
+      }
+      if (exceedsPrintWidth(
+          scratch -> {
+            render(clause.pattern(), scratch);
+            if (clause.guard() != null) {
+              scratch.append(" when ");
+              render(clause.guard(), scratch);
+            }
+            scratch.append(" -> ");
+            render(clause.body(), scratch, indent);
+          })) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private boolean usesMultilineCaseBody(Expression body) {
