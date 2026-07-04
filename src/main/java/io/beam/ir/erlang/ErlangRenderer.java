@@ -123,7 +123,16 @@ public final class ErlangRenderer implements Renderer {
 
   @Override
   public String render(Header header) {
+    if (header.verbatimOrNull() != null) {
+      return header.verbatimOrNull().endsWith("\n")
+          ? header.verbatimOrNull()
+          : header.verbatimOrNull() + "\n";
+    }
     StringBuilder out = new StringBuilder();
+    if (header.entriesOrNull() != null) {
+      renderHeaderEntries(header.entriesOrNull(), header.separateEntries(), out);
+      return out.toString().stripTrailing() + "\n";
+    }
 
     if (header.comments() != null) {
       for (String comment : header.comments()) {
@@ -140,6 +149,53 @@ public final class ErlangRenderer implements Renderer {
     }
 
     return out.toString().stripTrailing() + "\n";
+  }
+
+  private void renderHeaderEntries(
+      List<HeaderEntry> entries, boolean separateEntries, StringBuilder out) {
+    for (int i = 0; i < entries.size(); i++) {
+      if (separateEntries
+          && i > 0
+          && shouldSeparateHeaderEntries(entries.get(i - 1), entries.get(i))) {
+        out.append('\n');
+      }
+      render(entries.get(i), out);
+    }
+  }
+
+  private boolean shouldSeparateHeaderEntries(HeaderEntry previous, HeaderEntry current) {
+    if (previous instanceof HeaderRecordEntry recordEntry
+        && current instanceof HeaderTypeAliasEntry typeEntry) {
+      RecordDef record = recordEntry.record();
+      TypeAlias type = typeEntry.typeAlias();
+      String recordName = record.name();
+      String typeName =
+          type.name().endsWith("()") ? type.name().substring(0, type.name().length() - 2) : type.name();
+      return !recordName.equals(typeName);
+    }
+    return true;
+  }
+
+  private void render(HeaderEntry entry, StringBuilder out) {
+    if (entry instanceof HeaderComment comment) {
+      renderCommentLine(comment.text(), out);
+    } else if (entry instanceof HeaderBlankLine) {
+      out.append('\n');
+    } else if (entry instanceof HeaderIfndef ifndef) {
+      out.append("-ifndef(").append(ifndef.name()).append(").\n");
+    } else if (entry instanceof HeaderDefine define) {
+      out.append("-define(")
+          .append(define.name())
+          .append(", ")
+          .append(define.value())
+          .append(").\n");
+    } else if (entry instanceof HeaderEndif) {
+      out.append("-endif.\n");
+    } else if (entry instanceof HeaderRecordEntry recordEntry) {
+      render(recordEntry.record(), out);
+    } else if (entry instanceof HeaderTypeAliasEntry typeEntry) {
+      render(typeEntry.typeAlias(), out);
+    }
   }
 
   private void renderTypeAliases(List<TypeAlias> typeAliases, StringBuilder out) {

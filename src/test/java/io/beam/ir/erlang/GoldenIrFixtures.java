@@ -50,6 +50,46 @@ final class GoldenIrFixtures {
         List.of(TypeAlias.of("basic_item()", "#basic_item{}")));
   }
 
+  static Header runtimeTypesHeader() {
+    return Header.ofEntries(
+        List.of(
+            new HeaderIfndef("BEAM_RUNTIME_TYPES_INCLUDED"),
+            new HeaderDefine("BEAM_RUNTIME_TYPES_INCLUDED", "true"),
+            new HeaderBlankLine(),
+            new HeaderComment("HTTP carrier types for generated clients. Adjust only via codegen."),
+            new HeaderRecordEntry(runtimeHttpRequestRecord()),
+            new HeaderTypeAliasEntry(TypeAlias.of("http_request", "#http_request{}")),
+            new HeaderBlankLine(),
+            new HeaderRecordEntry(runtimeHttpResponseRecord()),
+            new HeaderTypeAliasEntry(TypeAlias.of("http_response", "#http_response{}")),
+            new HeaderBlankLine(),
+            new HeaderEndif()),
+        false);
+  }
+
+  private static RecordDef runtimeHttpRequestRecord() {
+    return RecordDef.of(
+        "http_request",
+        List.of(
+            TypedField.of("method", "binary()", "<<\"GET\">>"),
+            TypedField.of("path", "binary()", "<<\"/\">>"),
+            TypedField.of("query", "#{binary() => binary()}", "#{}"),
+            TypedField.of("headers", "[{binary(), binary()}]", "[]"),
+            TypedField.of("body", "iodata()", "<<>>"),
+            TypedField.of("host", "binary() | undefined", "undefined"),
+            TypedField.of("stream", "term() | undefined", "undefined")));
+  }
+
+  private static RecordDef runtimeHttpResponseRecord() {
+    return RecordDef.of(
+        "http_response",
+        List.of(
+            TypedField.of("status", "non_neg_integer()", "200"),
+            TypedField.of("headers", "[{binary(), binary()}]", "[]"),
+            TypedField.of("body", "iodata()", "<<>>"),
+            TypedField.of("stream", "term() | undefined", "undefined")));
+  }
+
   static Expression filtermapVerboseExpression() {
     return RemoteCallExpr.of(
         "lists",

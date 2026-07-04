@@ -42,6 +42,11 @@ class GoldenRendererTest {
   }
 
   @Test
+  void rendersRuntimeTypesHeader() throws IOException {
+    assertGolden("runtime_types.expected.hrl", renderer.render(GoldenIrFixtures.runtimeTypesHeader()));
+  }
+
+  @Test
   void rendersFiltermapVerboseExpression() throws IOException {
     assertGolden(
         "filtermap_verbose.expected.erl",
