@@ -13,6 +13,10 @@ final class GoldenIrFixturesVerbatim {
     return Function.verbatim(readGolden(goldenBaseName + ".expected.erl"));
   }
 
+  static Expression expression(String goldenBaseName) {
+    return OpaqueExpr.of(readGolden(goldenBaseName + ".expected.erl"));
+  }
+
   static List<Function> functions(String goldenBaseName) {
     return List.of(function(goldenBaseName));
   }

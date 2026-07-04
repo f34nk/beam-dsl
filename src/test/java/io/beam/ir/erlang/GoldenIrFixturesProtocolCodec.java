@@ -70,6 +70,10 @@ final class GoldenIrFixturesProtocolCodec {
     return GoldenIrFixturesVerbatim.function("aws_json_encode_get_user_response");
   }
 
+  static List<Function> awsJsonSharedCodecHelpersFunctions() {
+    return GoldenIrFixturesVerbatim.functions("aws_json_shared_codec_helpers");
+  }
+
   static List<Function> restXmlHelpersFunctions() {
     return GoldenIrFixturesVerbatim.functions("rest_xml_helpers");
   }
@@ -104,6 +108,14 @@ final class GoldenIrFixturesProtocolCodec {
 
   static Function restJsonEncodeNotFoundErrorResponseFunction() {
     return GoldenIrFixturesVerbatim.function("rest_json_encode_not_found_error_response");
+  }
+
+  static Expression restJsonEncodeResponseBodyExpression() {
+    return GoldenIrFixturesVerbatim.expression("rest_json_encode_response_body");
+  }
+
+  static List<Function> sigv4HelpersFunctions() {
+    return GoldenIrFixturesVerbatim.functions("sigv4_helpers");
   }
 
   static Module sigv4Module() {

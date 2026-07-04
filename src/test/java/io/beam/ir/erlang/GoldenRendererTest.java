@@ -631,6 +631,55 @@ class GoldenRendererTest {
   }
 
   @Test
+  void rendersHttpChecksumRequestHeadersExpression() throws IOException {
+    assertGolden(
+        "http_checksum_request_headers.expected.erl",
+        renderer.renderExpression(GoldenIrFixtures.httpChecksumRequestHeadersExpression()));
+  }
+
+  @Test
+  void rendersJsonDecodedBodyPreludeExpression() throws IOException {
+    assertGolden(
+        "json_decoded_body_prelude.expected.erl",
+        renderer.renderExpression(GoldenIrFixturesExpressions.jsonDecodedBodyPreludeExpression()));
+  }
+
+  @Test
+  void rendersRestJsonEncodeResponseBodyExpression() throws IOException {
+    assertGolden(
+        "rest_json_encode_response_body.expected.erl",
+        renderer.renderExpression(GoldenIrFixtures.restJsonEncodeResponseBodyExpression()));
+  }
+
+  @Test
+  void rendersAwsJsonSharedCodecHelpersFunctions() throws IOException {
+    assertGolden(
+        "aws_json_shared_codec_helpers.expected.erl",
+        renderFunctions(GoldenIrFixtures.awsJsonSharedCodecHelpersFunctions()));
+  }
+
+  @Test
+  void rendersRuntimeHelpersLabelParsingFunctions() throws IOException {
+    assertGolden(
+        "runtime_helpers_label_parsing.expected.erl",
+        renderFunctions(GoldenIrFixtures.runtimeHelpersLabelParsingFunctions()));
+  }
+
+  @Test
+  void rendersS3EndpointHelpersFunctions() throws IOException {
+    assertGolden(
+        "s3_endpoint_helpers.expected.erl",
+        renderFunctions(GoldenIrFixtures.s3EndpointHelpersFunctions()));
+  }
+
+  @Test
+  void rendersSigv4HelpersFunctions() throws IOException {
+    assertGolden(
+        "sigv4_helpers.expected.erl",
+        renderFunctions(GoldenIrFixtures.sigv4HelpersFunctions()));
+  }
+
+  @Test
   void rendersHttpDispatchSplitBaseUrlFunction() throws IOException {
     assertGolden(
         "http_dispatch_split_base_url.expected.erl",

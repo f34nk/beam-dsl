@@ -1610,6 +1610,10 @@ final class GoldenIrFixtures {
     return GoldenIrFixturesProtocolCodec.awsJsonEncodeGetUserResponseFunction();
   }
 
+  static List<Function> awsJsonSharedCodecHelpersFunctions() {
+    return GoldenIrFixturesProtocolCodec.awsJsonSharedCodecHelpersFunctions();
+  }
+
   static List<Function> restXmlHelpersFunctions() {
     return GoldenIrFixturesProtocolCodec.restXmlHelpersFunctions();
   }
@@ -1646,6 +1650,14 @@ final class GoldenIrFixtures {
     return GoldenIrFixturesProtocolCodec.restJsonEncodeNotFoundErrorResponseFunction();
   }
 
+  static Expression restJsonEncodeResponseBodyExpression() {
+    return GoldenIrFixturesProtocolCodec.restJsonEncodeResponseBodyExpression();
+  }
+
+  static List<Function> sigv4HelpersFunctions() {
+    return GoldenIrFixturesProtocolCodec.sigv4HelpersFunctions();
+  }
+
   static Function sigv4SignRequestFunction() {
     return GoldenIrFixturesProtocolCodec.sigv4SignRequestFunction();
   }
@@ -1664,6 +1676,10 @@ final class GoldenIrFixtures {
 
   static Function httpChecksumHelpersFunction() {
     return GoldenIrFixturesAwsRuntime.httpChecksumHelpersFunction();
+  }
+
+  static Expression httpChecksumRequestHeadersExpression() {
+    return GoldenIrFixturesAwsRuntime.httpChecksumRequestHeadersExpression();
   }
 
   static Function httpDispatchSplitBaseUrlFunction() {
@@ -1730,12 +1746,20 @@ final class GoldenIrFixtures {
     return GoldenIrFixturesAwsRuntime.runtimeHelpersLabelModule();
   }
 
+  static List<Function> runtimeHelpersLabelParsingFunctions() {
+    return GoldenIrFixturesAwsRuntime.runtimeHelpersLabelParsingFunctions();
+  }
+
   static Function s3EndpointRegionHostFunction() {
     return GoldenIrFixturesAwsRuntime.s3EndpointRegionHostFunction();
   }
 
   static Module s3EndpointModule() {
     return GoldenIrFixturesAwsRuntime.s3EndpointModule();
+  }
+
+  static List<Function> s3EndpointHelpersFunctions() {
+    return GoldenIrFixturesAwsRuntime.s3EndpointHelpersFunctions();
   }
 
   static Function clientPaginationListWidgetsFunction() {

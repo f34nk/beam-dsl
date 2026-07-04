@@ -1,5 +1,7 @@
 package io.beam.ir.erlang;
 
+import java.util.List;
+
 final class GoldenIrFixturesAwsRuntime {
 
   private GoldenIrFixturesAwsRuntime() {}
@@ -10,6 +12,10 @@ final class GoldenIrFixturesAwsRuntime {
 
   static Function httpChecksumHelpersFunction() {
     return GoldenIrFixturesVerbatim.function("http_checksum_helpers");
+  }
+
+  static Expression httpChecksumRequestHeadersExpression() {
+    return GoldenIrFixturesVerbatim.expression("http_checksum_request_headers");
   }
 
   static Function httpDispatchSplitBaseUrlFunction() {
@@ -76,12 +82,20 @@ final class GoldenIrFixturesAwsRuntime {
     return GoldenIrFixturesVerbatim.module("runtime_helpers_label_module");
   }
 
+  static List<Function> runtimeHelpersLabelParsingFunctions() {
+    return GoldenIrFixturesVerbatim.functions("runtime_helpers_label_parsing");
+  }
+
   static Function s3EndpointRegionHostFunction() {
     return GoldenIrFixturesVerbatim.function("s3_endpoint_region_host");
   }
 
   static Module s3EndpointModule() {
     return GoldenIrFixturesVerbatim.module("s3_endpoint_module");
+  }
+
+  static List<Function> s3EndpointHelpersFunctions() {
+    return GoldenIrFixturesVerbatim.functions("s3_endpoint_helpers");
   }
 
   static Function clientPaginationListWidgetsFunction() {

@@ -167,6 +167,10 @@ final class GoldenIrFixturesExpressions {
             MapEntry.of(BinaryExpr.of("count"), Variable.of("Count"))));
   }
 
+  static Expression jsonDecodedBodyPreludeExpression() {
+    return GoldenIrFixturesVerbatim.expression("json_decoded_body_prelude");
+  }
+
   private static CaseExpr dispatchGetNameCase(Expression request) {
     return CaseExpr.of(
         RemoteCallExpr.of("runtime_http", "dispatch", List.of(Variable.of("Config"), request)),
