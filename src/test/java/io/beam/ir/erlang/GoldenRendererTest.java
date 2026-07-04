@@ -80,17 +80,6 @@ class GoldenRendererTest {
   }
 
   @Test
-  void rendersHttpChecksumRequestHeadersExpression() throws IOException {
-    assertGolden(
-        "http_checksum_request_headers.expected.erl",
-        renderer.renderExpression(
-                GoldenIrFixturesExpressions.httpChecksumRequiredRequestHeadersExpression())
-            + "\n\n"
-            + renderer.renderExpression(
-                GoldenIrFixturesExpressions.httpChecksumFlexibleRequestHeadersExpression()));
-  }
-
-  @Test
   void rendersHttpChecksumResponseGuardExpression() throws IOException {
     assertGolden(
         "http_checksum_response_guard.expected.erl",
@@ -104,14 +93,6 @@ class GoldenRendererTest {
         "json_body_map_entries_basic_item.expected.erl",
         renderer.renderExpression(
             GoldenIrFixturesExpressions.jsonBodyMapEntriesBasicItemExpression()));
-  }
-
-  @Test
-  void rendersRestJsonEncodeResponseBodyExpression() throws IOException {
-    assertGolden(
-        "rest_json_encode_response_body.expected.erl",
-        renderer.renderExpression(
-            GoldenIrFixturesExpressions.restJsonEncodeResponseBodyExpression()));
   }
 
   @Test

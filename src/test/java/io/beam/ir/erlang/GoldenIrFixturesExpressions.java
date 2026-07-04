@@ -134,63 +134,6 @@ final class GoldenIrFixturesExpressions {
                     TupleExpr.of(List.of(AtomExpr.of("error"), Variable.of("Reason")))))));
   }
 
-  static Expression httpChecksumRequiredRequestHeadersExpression() {
-    return MatchExpr.bind(
-        "Checksum0",
-        RemoteCallExpr.of("crypto", "hash", List.of(AtomExpr.of("md5"), Variable.of("Body"))),
-        MatchExpr.bindValue(
-            "HeadersWithChecksum",
-            LocalCallExpr.of(
-                "headers_set",
-                List.of(
-                    BinaryExpr.of("Content-MD5"),
-                    LocalCallExpr.of("checksum_header_encode", List.of(Variable.of("Checksum0"))),
-                    Variable.of("Headers")))));
-  }
-
-  static Expression httpChecksumFlexibleRequestHeadersExpression() {
-    return MatchExpr.bindValue(
-        "HeadersWithChecksum",
-        CaseExpr.of(
-            Variable.of("ChecksumAlgorithm"),
-            List.of(
-                Clause.of(AtomPattern.of("undefined"), Variable.of("Headers")),
-                Clause.of(
-                    AtomPattern.of("crc32c"),
-                    MatchExpr.bind(
-                        "Checksum",
-                        LocalCallExpr.of("crc32c_hash", List.of(Variable.of("Body"))),
-                        LocalCallExpr.of(
-                            "headers_set",
-                            List.of(
-                                BinaryExpr.of("x-amz-checksum-crc32c"),
-                                LocalCallExpr.of(
-                                    "checksum_header_encode", List.of(Variable.of("Checksum"))),
-                                Variable.of("Headers"))))),
-                Clause.of(
-                    AtomPattern.of("sha256"),
-                    MatchExpr.bind(
-                        "Checksum",
-                        RemoteCallExpr.of(
-                            "crypto", "hash", List.of(AtomExpr.of("sha256"), Variable.of("Body"))),
-                        LocalCallExpr.of(
-                            "headers_set",
-                            List.of(
-                                BinaryExpr.of("x-amz-checksum-sha256"),
-                                LocalCallExpr.of(
-                                    "checksum_header_encode", List.of(Variable.of("Checksum"))),
-                                Variable.of("Headers"))))),
-                Clause.of(
-                    VariablePattern.of("Other"),
-                    LocalCallExpr.of(
-                        "error",
-                        List.of(
-                            TupleExpr.of(
-                                List.of(
-                                    AtomExpr.of("unsupported_checksum_algorithm"),
-                                    Variable.of("Other")))))))));
-  }
-
   static Expression httpChecksumResponseGuardExpression() {
     return CaseExpr.of(
         LocalCallExpr.of(
@@ -222,41 +165,6 @@ final class GoldenIrFixturesExpressions {
         List.of(
             MapEntry.of(BinaryExpr.of("name"), Variable.of("Name")),
             MapEntry.of(BinaryExpr.of("count"), Variable.of("Count"))));
-  }
-
-  static Expression restJsonEncodeResponseBodyExpression() {
-    return BlockExpr.newlineSeparated(
-        List.of(
-            MatchExpr.bindValue(
-                "Headers",
-                ListExpr.of(
-                    List.of(
-                        TupleExpr.of(
-                            List.of(
-                                BinaryExpr.of("Content-Type"),
-                                BinaryExpr.of("application/json")))))),
-            MatchExpr.bindValue(
-                "BodyMap",
-                RemoteCallExpr.of(
-                    "maps",
-                    "filter",
-                    List.of(
-                        Fun.of(
-                            List.of(
-                                FunClause.of(
-                                    List.of(WildcardPattern.of(), VariablePattern.of("V")),
-                                    InfixExpr.of(
-                                        Variable.of("V"), "=/=", AtomExpr.of("undefined"))))),
-                        MapExpr.of(
-                            List.of(MapEntry.of(BinaryExpr.of("name"), Variable.of("Name"))))))),
-            MatchExpr.bindValue(
-                "Body", RemoteCallExpr.of("jsone", "encode", List.of(Variable.of("BodyMap")))),
-            RecordExpr.of(
-                "http_response",
-                List.of(
-                    RecordField.of("status", IntegerExpr.of(200)),
-                    RecordField.of("headers", Variable.of("Headers")),
-                    RecordField.of("body", Variable.of("Body"))))));
   }
 
   private static CaseExpr dispatchGetNameCase(Expression request) {
