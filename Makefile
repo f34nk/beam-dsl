@@ -1,5 +1,5 @@
 
-all: format build test
+all: clean format build test
 
 .PHONY: test
 test: 
@@ -29,3 +29,4 @@ format/erlang:
 .PHONY: clean
 clean:
 	rm -rf target/
+	rm -rf ~/.m2/repository/io/beam/beam-ir/*
