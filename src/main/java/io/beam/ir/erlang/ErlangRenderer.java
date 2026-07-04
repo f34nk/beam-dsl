@@ -1244,16 +1244,22 @@ public final class ErlangRenderer implements Renderer {
     out.append(indent).append("catch\n");
 
     List<Clause> clauses = tryExpr.catchClauses();
+    boolean multilineClauses = caseUsesMultilineClauseLayout(clauses, indent);
     for (int i = 0; i < clauses.size(); i++) {
+      Clause clause = clauses.get(i);
       out.append(indent).append(INDENT);
-      render(clauses.get(i).pattern(), out);
-      if (clauses.get(i).guard() != null) {
+      render(clause.pattern(), out);
+      if (clause.guard() != null) {
         out.append(" when ");
-        render(clauses.get(i).guard(), out);
+        render(clause.guard(), out);
       }
       out.append(" ->");
-      Expression catchBody = clauses.get(i).body();
-      if (usesMultilineCaseBody(catchBody)) {
+      Expression catchBody = clause.body();
+      if (multilineClauses) {
+        out.append('\n');
+        out.append(indent).append(INDENT).append(INDENT);
+        render(catchBody, out, indent + INDENT + INDENT);
+      } else if (usesMultilineCaseBody(catchBody)) {
         out.append('\n');
         out.append(indent).append(INDENT).append(INDENT);
         render(catchBody, out, indent + INDENT + INDENT);
