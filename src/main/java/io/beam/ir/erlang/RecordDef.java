@@ -1,0 +1,14 @@
+package io.beam.ir.erlang;
+
+import java.util.List;
+
+public record RecordDef(String name, List<TypedField> fields, SourceSpan source) {
+
+  public static RecordDef of(String name, List<TypedField> fields) {
+    return new RecordDef(name, fields, null);
+  }
+
+  public static RecordDef of(String name, List<TypedField> fields, SourceSpan source) {
+    return new RecordDef(name, fields, source);
+  }
+}
