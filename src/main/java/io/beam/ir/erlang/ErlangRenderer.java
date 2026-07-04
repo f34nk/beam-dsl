@@ -530,9 +530,80 @@ public final class ErlangRenderer implements Renderer {
   }
 
   private void render(TupleExpr tuple, StringBuilder out, String indent) {
+    String linePrefix = currentLinePrefix(out);
+    if (!tupleExceedsPrintWidth(tuple, linePrefix, indent)) {
+      out.append('{');
+      renderArguments(tuple.elements(), out, indent);
+      out.append('}');
+      return;
+    }
+    renderTupleWrapped(tuple.elements(), out, indent, linePrefix);
+  }
+
+  private boolean tupleExceedsPrintWidth(
+      TupleExpr tuple, String linePrefix, String indent) {
+    return exceedsPrintWidth(
+        scratch -> {
+          scratch.append(linePrefix);
+          scratch.append('{');
+          renderArguments(tuple.elements(), scratch, indent);
+          scratch.append('}');
+        });
+  }
+
+  private void renderTupleWrapped(
+      List<Expression> elements, StringBuilder out, String indent, String linePrefix) {
     out.append('{');
-    renderArguments(tuple.elements(), out, indent);
+    for (int i = 0; i < elements.size(); i++) {
+      if (i > 0) {
+        out.append(", ");
+      }
+      Expression element = elements.get(i);
+      if (i > 0 && tupleElementNeedsLineBreak(elements, i, out, indent, linePrefix)) {
+        if (element instanceof TupleExpr inner) {
+          out.append("{\n");
+          out.append(indent).append(INDENT);
+          renderArguments(inner.elements(), out, indent + INDENT);
+          out.append('\n');
+          out.append(indent).append('}');
+        } else {
+          out.append('\n');
+          out.append(indent).append(INDENT);
+          render(element, out, indent + INDENT);
+        }
+      } else {
+        render(element, out, indent);
+      }
+    }
     out.append('}');
+  }
+
+  private boolean tupleElementNeedsLineBreak(
+      List<Expression> elements,
+      int elementIndex,
+      StringBuilder out,
+      String indent,
+      String linePrefix) {
+    return exceedsPrintWidth(
+        scratch -> {
+          scratch.append(linePrefix);
+          scratch.append('{');
+          for (int i = 0; i < elementIndex; i++) {
+            if (i > 0) {
+              scratch.append(", ");
+            }
+            render(elements.get(i), scratch, indent);
+          }
+          scratch.append(", ");
+          render(elements.get(elementIndex), scratch, indent);
+          scratch.append('}');
+        });
+  }
+
+  private String currentLinePrefix(StringBuilder out) {
+    String text = out.toString();
+    int lastNewline = text.lastIndexOf('\n');
+    return lastNewline < 0 ? text : text.substring(lastNewline + 1);
   }
 
   private void render(MapExpr map, StringBuilder out, String indent) {
@@ -868,6 +939,10 @@ public final class ErlangRenderer implements Renderer {
       out.append("<<\"").append(segments.get(0).literal()).append("\">>");
       return;
     }
+    if (shouldWrapBinaryExprSegments(segments, out, indent)) {
+      renderBinaryExprSegmentsMultiline(segments, out, indent);
+      return;
+    }
     out.append("<<");
     for (int i = 0; i < segments.size(); i++) {
       if (i > 0) {
@@ -876,6 +951,117 @@ public final class ErlangRenderer implements Renderer {
       render(segments.get(i), out, indent);
     }
     out.append(">>");
+  }
+
+  private boolean shouldWrapBinaryExprSegments(
+      List<BinarySegmentExpr> segments, StringBuilder out, String indent) {
+    String linePrefix = currentLinePrefix(out);
+    return binarySegmentsExceedPrintWidth(
+        segments.size(),
+        linePrefix,
+        (index, scratch) -> render(segments.get(index), scratch, indent));
+  }
+
+  private void renderBinaryExprSegmentsMultiline(
+      List<BinarySegmentExpr> segments, StringBuilder out, String indent) {
+    String linePrefix = currentLinePrefix(out);
+    int breakIndex =
+        findBinarySegmentBreakIndex(
+            segments.size(),
+            linePrefix,
+            (index, scratch) -> render(segments.get(index), scratch, indent));
+    out.append("<<");
+    for (int i = 0; i < breakIndex; i++) {
+      if (i > 0) {
+        out.append(", ");
+      }
+      render(segments.get(i), out, indent);
+    }
+    out.append(",\n");
+    out.append(linePrefix).append(INDENT);
+    for (int i = breakIndex; i < segments.size(); i++) {
+      if (i > breakIndex) {
+        out.append(", ");
+      }
+      render(segments.get(i), out, indent + INDENT);
+    }
+    out.append(">>");
+  }
+
+  private boolean shouldWrapBinaryPatternSegments(
+      List<BinarySegmentPattern> segments, String linePrefix) {
+    return binarySegmentsExceedPrintWidth(
+        segments.size(),
+        linePrefix,
+        (index, scratch) -> render(segments.get(index), scratch));
+  }
+
+  private void renderBinaryPatternSegmentsMultiline(
+      List<BinarySegmentPattern> segments, StringBuilder out, String linePrefix) {
+    int breakIndex =
+        findBinarySegmentBreakIndex(
+            segments.size(),
+            linePrefix,
+            (index, scratch) -> render(segments.get(index), scratch));
+    out.append("<<");
+    for (int i = 0; i < breakIndex; i++) {
+      if (i > 0) {
+        out.append(", ");
+      }
+      render(segments.get(i), out);
+    }
+    out.append(",\n");
+    out.append(linePrefix).append(INDENT);
+    for (int i = breakIndex; i < segments.size(); i++) {
+      if (i > breakIndex) {
+        out.append(", ");
+      }
+      render(segments.get(i), out);
+    }
+    out.append(">>");
+  }
+
+  private boolean binarySegmentsExceedPrintWidth(
+      int segmentCount,
+      String linePrefix,
+      java.util.function.BiConsumer<Integer, StringBuilder> segmentRenderer) {
+    return exceedsPrintWidth(
+        scratch -> {
+          scratch.append(linePrefix);
+          scratch.append("<<");
+          for (int i = 0; i < segmentCount; i++) {
+            if (i > 0) {
+              scratch.append(", ");
+            }
+            segmentRenderer.accept(i, scratch);
+          }
+          scratch.append(">>");
+        });
+  }
+
+  private int findBinarySegmentBreakIndex(
+      int segmentCount,
+      String linePrefix,
+      java.util.function.BiConsumer<Integer, StringBuilder> segmentRenderer) {
+    for (int breakIndex = segmentCount - 1; breakIndex >= 1; breakIndex--) {
+      final int firstLineSegmentCount = breakIndex;
+      if (compactLength(
+              scratch -> {
+                scratch.append(linePrefix);
+                scratch.append("<<");
+                for (int i = 0; i < firstLineSegmentCount; i++) {
+                  if (i > 0) {
+                    scratch.append(", ");
+                  }
+                  segmentRenderer.accept(i, scratch);
+                }
+                scratch.append(',');
+              })
+          < PRINT_WIDTH) {
+        return breakIndex;
+      }
+    }
+    return 1;
   }
 
   private void render(BinarySegmentExpr segment, StringBuilder out, String indent) {
@@ -903,6 +1089,11 @@ public final class ErlangRenderer implements Renderer {
     }
     if (segments.size() == 1 && isSimpleLiteralSegment(segments.get(0))) {
       out.append("<<\"").append(segments.get(0).literal()).append("\">>");
+      return;
+    }
+    String linePrefix = currentLinePrefix(out);
+    if (shouldWrapBinaryPatternSegments(segments, linePrefix)) {
+      renderBinaryPatternSegmentsMultiline(segments, out, linePrefix);
       return;
     }
     out.append("<<");

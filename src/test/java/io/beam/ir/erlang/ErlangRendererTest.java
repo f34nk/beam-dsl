@@ -90,7 +90,8 @@ class ErlangRendererTest {
                 BinarySegmentPattern.of(WildcardPattern.of(), "binary")));
     String expected =
         "<<Y:4/binary, \"-\", Mo:2/binary, \"-\", D:2/binary, \"T\", H:2/binary, \":\","
-            + " Mi:2/binary, \":\", S:2/binary, _/binary>>";
+            + " Mi:2/binary, \":\",\n"
+            + "    S:2/binary, _/binary>>";
     assertEquals(expected, new ErlangRenderer().renderPattern(pattern));
   }
 
@@ -611,8 +612,11 @@ class ErlangRendererTest {
     String expected =
         """
         try
-            <<Y:4/binary, "-", Mo:2/binary, "-", D:2/binary, "T", H:2/binary, ":", Mi:2/binary, ":", S:2/binary, _/binary>> = V,
-            Dt = {{binary_to_integer(Y), binary_to_integer(Mo), binary_to_integer(D)}, {binary_to_integer(H), binary_to_integer(Mi), binary_to_integer(S)}},
+            <<Y:4/binary, "-", Mo:2/binary, "-", D:2/binary, "T", H:2/binary, ":", Mi:2/binary, ":",
+                S:2/binary, _/binary>> = V,
+            Dt = {{binary_to_integer(Y), binary_to_integer(Mo), binary_to_integer(D)}, {
+                binary_to_integer(H), binary_to_integer(Mi), binary_to_integer(S)
+            }},
             GregorianSecs = calendar:datetime_to_gregorian_seconds(Dt),
             EpochSecs = (GregorianSecs - 62167219200),
             Mega = (EpochSecs div 1000000),
