@@ -530,36 +530,124 @@ public final class ErlangRenderer implements Renderer {
   }
 
   private void render(TupleExpr tuple, StringBuilder out, String indent) {
-    String linePrefix = currentLinePrefix(out);
-    if (!tupleExceedsPrintWidth(tuple, linePrefix, indent)) {
+    if (!tupleExceedsPrintWidth(tuple)) {
       out.append('{');
       renderArguments(tuple.elements(), out, indent);
       out.append('}');
       return;
     }
-    renderTupleWrapped(tuple.elements(), out, indent, linePrefix);
+    renderTupleWrapped(tuple.elements(), out, indent);
   }
 
-  private boolean tupleExceedsPrintWidth(
-      TupleExpr tuple, String linePrefix, String indent) {
+  private boolean tupleExceedsPrintWidth(TupleExpr tuple) {
     return exceedsPrintWidth(
         scratch -> {
-          scratch.append(linePrefix);
           scratch.append('{');
-          renderArguments(tuple.elements(), scratch, indent);
+          renderFlatArguments(tuple.elements(), scratch);
           scratch.append('}');
         });
   }
 
+  /** Render an expression as a single flat line for print-width measurement. */
+  private void renderFlat(Expression expression, StringBuilder out) {
+    if (expression instanceof AtomExpr atom) {
+      out.append(atom.value());
+    } else if (expression instanceof IntegerExpr integer) {
+      out.append(integer.value());
+    } else if (expression instanceof Variable variable) {
+      out.append(variable.name());
+    } else if (expression instanceof StringExpr string) {
+      out.append('"').append(string.value()).append('"');
+    } else if (expression instanceof MacroExpr macro) {
+      out.append('?').append(macro.name());
+    } else if (expression instanceof InfixExpr infix) {
+      out.append('(');
+      renderFlat(infix.left(), out);
+      out.append(' ').append(infix.operator()).append(' ');
+      renderFlat(infix.right(), out);
+      out.append(')');
+    } else if (expression instanceof RecordFieldAccessExpr fieldAccess) {
+      renderFlat(fieldAccess.receiver(), out);
+      out.append('#').append(fieldAccess.recordName()).append('.').append(fieldAccess.fieldName());
+    } else if (expression instanceof RecordExpr record) {
+      if (record.base() != null) {
+        renderFlat(record.base(), out);
+      }
+      out.append('#').append(record.name()).append('{');
+      List<RecordField> fields = record.fields();
+      for (int i = 0; i < fields.size(); i++) {
+        if (i > 0) {
+          out.append(", ");
+        }
+        RecordField field = fields.get(i);
+        out.append(field.name()).append(" = ");
+        renderFlat(field.value(), out);
+      }
+      out.append('}');
+    } else if (expression instanceof TupleExpr tuple) {
+      out.append('{');
+      renderFlatArguments(tuple.elements(), out);
+      out.append('}');
+    } else if (expression instanceof LocalCallExpr call) {
+      out.append(call.function()).append('(');
+      renderFlatArguments(call.arguments(), out);
+      out.append(')');
+    } else if (expression instanceof RemoteCallExpr call) {
+      renderFlat(call.module(), out);
+      out.append(':');
+      renderFlat(call.function(), out);
+      out.append('(');
+      renderFlatArguments(call.arguments(), out);
+      out.append(')');
+    } else if (expression instanceof ApplyExpr apply) {
+      renderFlat(apply.callee(), out);
+      out.append('(');
+      renderFlatArguments(apply.arguments(), out);
+      out.append(')');
+    } else if (expression instanceof BinaryExpr binary) {
+      out.append("<<");
+      List<BinarySegmentExpr> segments = binary.segments();
+      for (int i = 0; i < segments.size(); i++) {
+        if (i > 0) {
+          out.append(", ");
+        }
+        renderFlat(segments.get(i), out);
+      }
+      out.append(">>");
+    } else if (expression instanceof Fun) {
+      out.append("fun end");
+    } else {
+      render(expression, out, "");
+    }
+  }
+
+  private void renderFlat(BinarySegmentExpr segment, StringBuilder out) {
+    if (segment.literal() != null) {
+      out.append('"').append(segment.literal()).append('"');
+    } else {
+      renderFlat(segment.expression(), out);
+    }
+    renderBinarySegmentSpecifiers(segment.size(), segment.type(), segment.unit(), out);
+  }
+
+  private void renderFlatArguments(List<Expression> arguments, StringBuilder out) {
+    for (int i = 0; i < arguments.size(); i++) {
+      if (i > 0) {
+        out.append(", ");
+      }
+      renderFlat(arguments.get(i), out);
+    }
+  }
+
   private void renderTupleWrapped(
-      List<Expression> elements, StringBuilder out, String indent, String linePrefix) {
+      List<Expression> elements, StringBuilder out, String indent) {
     out.append('{');
     for (int i = 0; i < elements.size(); i++) {
       if (i > 0) {
         out.append(", ");
       }
       Expression element = elements.get(i);
-      if (i > 0 && tupleElementNeedsLineBreak(elements, i, out, indent, linePrefix)) {
+      if (i > 0 && tupleElementNeedsLineBreak(elements, i)) {
         if (element instanceof TupleExpr inner) {
           out.append("{\n");
           out.append(indent).append(INDENT);
@@ -578,24 +666,18 @@ public final class ErlangRenderer implements Renderer {
     out.append('}');
   }
 
-  private boolean tupleElementNeedsLineBreak(
-      List<Expression> elements,
-      int elementIndex,
-      StringBuilder out,
-      String indent,
-      String linePrefix) {
+  private boolean tupleElementNeedsLineBreak(List<Expression> elements, int elementIndex) {
     return exceedsPrintWidth(
         scratch -> {
-          scratch.append(linePrefix);
           scratch.append('{');
           for (int i = 0; i < elementIndex; i++) {
             if (i > 0) {
               scratch.append(", ");
             }
-            render(elements.get(i), scratch, indent);
+            renderFlat(elements.get(i), scratch);
           }
           scratch.append(", ");
-          render(elements.get(elementIndex), scratch, indent);
+          renderFlat(elements.get(elementIndex), scratch);
           scratch.append('}');
         });
   }
