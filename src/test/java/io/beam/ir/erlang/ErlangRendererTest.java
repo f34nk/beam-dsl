@@ -1079,4 +1079,27 @@ class ErlangRendererTest {
     assertTrue(rendered.contains("Call basic_service_server:init_handlers/0"));
     assertFalse(rendered.contains("-export([])"));
   }
+
+  @Test
+  void rendersRemoteCallWithVerticalLayout() {
+    Function function =
+        Function.of(
+            "generate_uuid",
+            List.of(
+                FunctionClause.of(
+                    List.of(),
+                    LocalCallExpr.of(
+                        "list_to_binary",
+                        List.of(
+                            RemoteCallExpr.of(
+                                "uuid",
+                                "to_string",
+                                List.of(RemoteCallExpr.of("uuid", "v4", List.of()))))))));
+
+    String expected =
+        """
+        generate_uuid() -> list_to_binary(uuid:to_string(uuid:v4())).
+        """;
+    assertEquals(expected, ErlangRenderer.renderFunction(function));
+  }
 }
