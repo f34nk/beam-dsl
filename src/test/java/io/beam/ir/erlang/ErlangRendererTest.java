@@ -12,13 +12,13 @@ class ErlangRendererTest {
   @Test
   void rendersAtomExpr() {
     AtomExpr atom = AtomExpr.of("foo");
-    assertEquals("foo", new ErlangRenderer().renderExpression(atom));
+    assertEquals("foo", ErlangRenderer.renderExpression(atom));
   }
 
   @Test
   void rendersAtomPattern() {
     AtomPattern pattern = AtomPattern.of("foo");
-    ErlangRenderer renderer = new ErlangRenderer();
+    DefaultErlangRenderer renderer = new DefaultErlangRenderer();
     String funWrap =
         renderer.renderExpression(Fun.of(List.of(FunClause.of(pattern, null, AtomExpr.of("bar")))));
     assertEquals("fun(foo) -> bar end", funWrap);
@@ -50,14 +50,14 @@ class ErlangRendererTest {
                 {ok, _} -> done
             end
         end""";
-    assertEquals(expected, new ErlangRenderer().renderExpression(fun));
+    assertEquals(expected, ErlangRenderer.renderExpression(fun));
   }
 
   @Test
   void rendersBinaryExpr() {
     // BinaryExpr could mean something like bitstring binary construction in Erlang: <<1,2>>
     BinaryExpr binaryExpr = BinaryExpr.of("foo");
-    ErlangRenderer renderer = new ErlangRenderer();
+    DefaultErlangRenderer renderer = new DefaultErlangRenderer();
     String result = renderer.renderExpression(binaryExpr);
     String expected = "<<\"foo\">>";
     assertEquals(expected, result);
@@ -74,7 +74,7 @@ class ErlangRendererTest {
                 BinarySegmentExpr.of(Variable.of("Region"), "binary"),
                 BinarySegmentExpr.literal(".amazonaws.com")));
     String expected = "<<\"https://\", Prefix/binary, \".\", Region/binary, \".amazonaws.com\">>";
-    assertEquals(expected, new ErlangRenderer().renderExpression(binaryExpr));
+    assertEquals(expected, ErlangRenderer.renderExpression(binaryExpr));
   }
 
   @Test
@@ -87,13 +87,13 @@ class ErlangRendererTest {
                     LocalCallExpr.of("integer_to_binary", List.of(Variable.of("Port"))),
                     "binary")));
     String expected = "<<\":\", (integer_to_binary(Port))/binary>>";
-    assertEquals(expected, new ErlangRenderer().renderExpression(binaryExpr));
+    assertEquals(expected, ErlangRenderer.renderExpression(binaryExpr));
   }
 
   @Test
   void rendersBinaryPattern() {
-    assertEquals("<<>>", new ErlangRenderer().renderPattern(BinaryPattern.of("")));
-    assertEquals("<<\"true\">>", new ErlangRenderer().renderPattern(BinaryPattern.of("true")));
+    assertEquals("<<>>", ErlangRenderer.renderPattern(BinaryPattern.of("")));
+    assertEquals("<<\"true\">>", ErlangRenderer.renderPattern(BinaryPattern.of("true")));
   }
 
   @Test
@@ -117,7 +117,7 @@ class ErlangRendererTest {
         "<<Y:4/binary, \"-\", Mo:2/binary, \"-\", D:2/binary, \"T\", H:2/binary, \":\","
             + " Mi:2/binary, \":\",\n"
             + "    S:2/binary, _/binary>>";
-    assertEquals(expected, new ErlangRenderer().renderPattern(pattern));
+    assertEquals(expected, ErlangRenderer.renderPattern(pattern));
   }
 
   @Test
@@ -128,7 +128,7 @@ class ErlangRendererTest {
                 BinarySegmentPattern.literal("{"),
                 BinarySegmentPattern.of(VariablePattern.of("Rest"), "binary")));
     String expected = "<<\"{\", Rest/binary>>";
-    assertEquals(expected, new ErlangRenderer().renderPattern(pattern));
+    assertEquals(expected, ErlangRenderer.renderPattern(pattern));
   }
 
   @Test
@@ -141,7 +141,7 @@ class ErlangRendererTest {
 
     CaseExpr caseExpr = CaseExpr.of(variable, clauses);
 
-    ErlangRenderer renderer = new ErlangRenderer();
+    DefaultErlangRenderer renderer = new DefaultErlangRenderer();
     String result = renderer.renderExpression(caseExpr);
 
     String expected =
@@ -168,7 +168,7 @@ class ErlangRendererTest {
             ok -> {ok, Output};
             {error, Reason} -> {error, {checksum_validation_failed, Reason}}
         end""";
-    assertEquals(expected, new ErlangRenderer().renderExpression(expression));
+    assertEquals(expected, ErlangRenderer.renderExpression(expression));
   }
 
   @Test
@@ -181,7 +181,7 @@ class ErlangRendererTest {
                 FunctionClause.of(
                     List.of(VariablePattern.of("X")),
                     InfixExpr.of(Variable.of("X"), "+", IntegerExpr.of(1)))));
-    ErlangRenderer renderer = new ErlangRenderer();
+    DefaultErlangRenderer renderer = new DefaultErlangRenderer();
     String result = renderer.renderFunction(function);
     String expected = "inc(X) -> (X + 1).\n";
     assertEquals(expected, result);
@@ -201,7 +201,7 @@ class ErlangRendererTest {
             spec,
             null,
             null);
-    ErlangRenderer renderer = new ErlangRenderer();
+    DefaultErlangRenderer renderer = new DefaultErlangRenderer();
     String result = renderer.renderFunction(function);
     String expected =
         """
@@ -226,7 +226,7 @@ class ErlangRendererTest {
             spec,
             doc,
             null);
-    ErlangRenderer renderer = new ErlangRenderer();
+    DefaultErlangRenderer renderer = new DefaultErlangRenderer();
     String result = renderer.renderFunction(function);
     String expected =
         """
@@ -253,7 +253,7 @@ class ErlangRendererTest {
             spec,
             edoc,
             null);
-    ErlangRenderer renderer = new ErlangRenderer();
+    DefaultErlangRenderer renderer = new DefaultErlangRenderer();
     String result = renderer.renderFunction(function);
     String expected =
         """
@@ -267,8 +267,7 @@ class ErlangRendererTest {
 
   @Test
   void rendersFunctionWithMixedClauseWidths() {
-    String result =
-        new ErlangRenderer().renderFunction(GoldenIrFixtures.mapDecodeColorLabelsFunction());
+    String result = ErlangRenderer.renderFunction(GoldenIrFixtures.mapDecodeColorLabelsFunction());
     String expected =
         """
         decode_color_labels(undefined) ->
@@ -293,7 +292,7 @@ class ErlangRendererTest {
                             "http_request",
                             List.of(RecordPatternField.of("body", VariablePattern.of("Body"))))),
                     Variable.of("Body"))));
-    ErlangRenderer renderer = new ErlangRenderer();
+    DefaultErlangRenderer renderer = new DefaultErlangRenderer();
     String result = renderer.renderFunction(function);
     String expected =
         """
@@ -307,14 +306,12 @@ class ErlangRendererTest {
   void rendersRecordFieldAccessExpr() {
     assertEquals(
         "Request#http_request.path",
-        new ErlangRenderer()
-            .renderExpression(
-                RecordFieldAccessExpr.of(Variable.of("Request"), "http_request", "path")));
+        ErlangRenderer.renderExpression(
+            RecordFieldAccessExpr.of(Variable.of("Request"), "http_request", "path")));
     assertEquals(
         "Record#basic_item.name",
-        new ErlangRenderer()
-            .renderExpression(
-                RecordFieldAccessExpr.of(Variable.of("Record"), "basic_item", "name")));
+        ErlangRenderer.renderExpression(
+            RecordFieldAccessExpr.of(Variable.of("Record"), "basic_item", "name")));
   }
 
   @Test
@@ -328,13 +325,13 @@ class ErlangRendererTest {
                 RecordFieldAccessExpr.of(Variable.of("Request"), "http_request", "query")));
     assertEquals(
         "build_url(Host, Request#http_request.path, Request#http_request.query)",
-        new ErlangRenderer().renderExpression(call));
+        ErlangRenderer.renderExpression(call));
   }
 
   @Test
   void rendersInfixExpr() {
     InfixExpr infixExpr = InfixExpr.of(IntegerExpr.of(1), "+", IntegerExpr.of(2));
-    ErlangRenderer renderer = new ErlangRenderer();
+    DefaultErlangRenderer renderer = new DefaultErlangRenderer();
     String result = renderer.renderExpression(infixExpr);
     String expected = "(1 + 2)";
     assertEquals(expected, result);
@@ -349,24 +346,21 @@ class ErlangRendererTest {
                 VariablePattern.of("Secs"),
                 WildcardPattern.of("Micro")));
     String expected = "{Mega, Secs, _Micro}";
-    assertEquals(expected, new ErlangRenderer().renderPattern(pattern));
+    assertEquals(expected, ErlangRenderer.renderPattern(pattern));
   }
 
   @Test
   void rendersMapExpr() {
-    assertEquals("#{}", new ErlangRenderer().renderExpression(MapExpr.of(List.of())));
+    assertEquals("#{}", ErlangRenderer.renderExpression(MapExpr.of(List.of())));
     assertEquals(
         "#{<<\"message\">> => V}",
-        new ErlangRenderer()
-            .renderExpression(
-                MapExpr.of(List.of(MapEntry.of(BinaryExpr.of("message"), Variable.of("V"))))));
+        ErlangRenderer.renderExpression(
+            MapExpr.of(List.of(MapEntry.of(BinaryExpr.of("message"), Variable.of("V"))))));
     assertEquals(
         "Acc#{Key => Val}",
-        new ErlangRenderer()
-            .renderExpression(
-                MapExpr.of(
-                    Variable.of("Acc"),
-                    List.of(MapEntry.of(Variable.of("Key"), Variable.of("Val"))))));
+        ErlangRenderer.renderExpression(
+            MapExpr.of(
+                Variable.of("Acc"), List.of(MapEntry.of(Variable.of("Key"), Variable.of("Val"))))));
   }
 
   @Test
@@ -438,36 +432,35 @@ class ErlangRendererTest {
                 user_name = maps:get(<<"userName">>, Decoded, undefined)
             }.
         """;
-    assertEquals(expected, new ErlangRenderer().renderFunction(function));
+    assertEquals(expected, ErlangRenderer.renderFunction(function));
   }
 
   @Test
   void rendersMapPattern() {
-    assertEquals("Map = #{}", new ErlangRenderer().renderPattern(MapPattern.bind("Map")));
+    assertEquals("Map = #{}", ErlangRenderer.renderPattern(MapPattern.bind("Map")));
   }
 
   @Test
   void rendersListPattern() {
     assertEquals(
         "[{<<\"message\">>, V}]",
-        new ErlangRenderer()
-            .renderPattern(
-                ListPattern.of(
-                    List.of(
-                        TuplePattern.of(
-                            List.of(BinaryPattern.of("message"), VariablePattern.of("V")))))));
+        ErlangRenderer.renderPattern(
+            ListPattern.of(
+                List.of(
+                    TuplePattern.of(
+                        List.of(BinaryPattern.of("message"), VariablePattern.of("V")))))));
   }
 
   @Test
   void rendersConsListPattern() {
     assertEquals(
         "[Base | _]",
-        new ErlangRenderer()
-            .renderPattern(ListPattern.cons(VariablePattern.of("Base"), WildcardPattern.of())));
+        ErlangRenderer.renderPattern(
+            ListPattern.cons(VariablePattern.of("Base"), WildcardPattern.of())));
     assertEquals(
         "[H | Rest]",
-        new ErlangRenderer()
-            .renderPattern(ListPattern.cons(VariablePattern.of("H"), VariablePattern.of("Rest"))));
+        ErlangRenderer.renderPattern(
+            ListPattern.cons(VariablePattern.of("H"), VariablePattern.of("Rest"))));
   }
 
   @Test
@@ -480,7 +473,7 @@ class ErlangRendererTest {
             InfixExpr.of(Variable.of("V"), "=/=", AtomExpr.of("null")));
 
     String expected = "[V || V <- List, V =/= null]";
-    assertEquals(expected, new ErlangRenderer().renderExpression(comprehension));
+    assertEquals(expected, ErlangRenderer.renderExpression(comprehension));
   }
 
   @Test
@@ -493,7 +486,7 @@ class ErlangRendererTest {
             InfixExpr.of(Variable.of("V"), "=/=", AtomExpr.of("null")));
 
     String expected = "[decode_basic_item(V) || V <- List, V =/= null]";
-    assertEquals(expected, new ErlangRenderer().renderExpression(comprehension));
+    assertEquals(expected, ErlangRenderer.renderExpression(comprehension));
   }
 
   @Test
@@ -519,7 +512,7 @@ class ErlangRendererTest {
             is_element(C),
             element_name(C) =:= Name
         ]""";
-    assertEquals(expected, new ErlangRenderer().renderExpression(comprehension));
+    assertEquals(expected, ErlangRenderer.renderExpression(comprehension));
   }
 
   @Test
@@ -548,13 +541,13 @@ class ErlangRendererTest {
          || {Fun, 3} <- Callbacks,
             erlang:function_exported(Impl, Fun, 3)
         ]""";
-    assertEquals(expected, new ErlangRenderer().renderExpression(comprehension));
+    assertEquals(expected, ErlangRenderer.renderExpression(comprehension));
   }
 
   @Test
   void rendersCatchPattern() {
-    assertEquals("_:_", new ErlangRenderer().renderPattern(CatchPattern.anyAny()));
-    assertEquals("_:Reason", new ErlangRenderer().renderPattern(CatchPattern.anyReason("Reason")));
+    assertEquals("_:_", ErlangRenderer.renderPattern(CatchPattern.anyAny()));
+    assertEquals("_:Reason", ErlangRenderer.renderPattern(CatchPattern.anyReason("Reason")));
   }
 
   @Test
@@ -572,7 +565,7 @@ class ErlangRendererTest {
         catch
             _:_ -> undefined
         end""";
-    assertEquals(expected, new ErlangRenderer().renderExpression(tryExpr));
+    assertEquals(expected, ErlangRenderer.renderExpression(tryExpr));
   }
 
   @Test
@@ -604,7 +597,7 @@ class ErlangRendererTest {
         catch
             _:Reason -> {error, {xml_parse_error, Reason}}
         end""";
-    assertEquals(expected, new ErlangRenderer().renderExpression(tryExpr));
+    assertEquals(expected, ErlangRenderer.renderExpression(tryExpr));
   }
 
   @Test
@@ -683,7 +676,7 @@ class ErlangRendererTest {
         catch
             _:_ -> undefined
         end""";
-    assertEquals(expected, new ErlangRenderer().renderExpression(tryExpr));
+    assertEquals(expected, ErlangRenderer.renderExpression(tryExpr));
   }
 
   @Test
@@ -722,7 +715,7 @@ class ErlangRendererTest {
         sign(Config, Operation, Request) -> ok.
         """;
 
-    assertEquals(expected, new ErlangRenderer().render(module));
+    assertEquals(expected, ErlangRenderer.render(module));
   }
 
   @Test
@@ -732,7 +725,7 @@ class ErlangRendererTest {
             Variable.of("Impl"),
             Variable.of("Fun"),
             List.of(Variable.of("Ctx"), Variable.of("Input"), Variable.of("Meta")));
-    assertEquals("Impl:Fun(Ctx, Input, Meta)", new ErlangRenderer().renderExpression(call));
+    assertEquals("Impl:Fun(Ctx, Input, Meta)", ErlangRenderer.renderExpression(call));
   }
 
   @Test
@@ -752,7 +745,7 @@ class ErlangRendererTest {
                 ListExpr.of(List.of(AtomExpr.of("with_body")))));
     assertEquals(
         "HttpClient:request(binary_to_atom(string:lowercase(Method), utf8), Req, [], [with_body])",
-        new ErlangRenderer().renderExpression(call));
+        ErlangRenderer.renderExpression(call));
   }
 
   @Test
@@ -760,7 +753,7 @@ class ErlangRendererTest {
     RemoteCallExpr call =
         RemoteCallExpr.of(
             InfixExpr.of(Variable.of("A"), "+", Variable.of("B")), AtomExpr.of("run"), List.of());
-    assertEquals("(A + B):run()", new ErlangRenderer().renderExpression(call));
+    assertEquals("(A + B):run()", ErlangRenderer.renderExpression(call));
   }
 
   @Test
@@ -794,7 +787,7 @@ class ErlangRendererTest {
                 S
             ])
         )""";
-    assertEquals(expected, new ErlangRenderer().renderExpression(call));
+    assertEquals(expected, ErlangRenderer.renderExpression(call));
   }
 
   @Test
@@ -815,7 +808,7 @@ class ErlangRendererTest {
             optional_param(Config, region, <<\"Region\">>),
             optional_param(Config, bucket, <<\"Bucket\">>)
         )""";
-    assertEquals(expected, new ErlangRenderer().renderExpression(call));
+    assertEquals(expected, ErlangRenderer.renderExpression(call));
   }
 
   @Test
@@ -838,7 +831,7 @@ class ErlangRendererTest {
             status = 200,
             body = Body
         }""";
-    assertEquals(expected, new ErlangRenderer().renderExpression(block));
+    assertEquals(expected, ErlangRenderer.renderExpression(block));
   }
 
   @Test
@@ -852,7 +845,7 @@ class ErlangRendererTest {
         """
         <<\"name\">> => Name,
         <<\"count\">> => Count""",
-        new ErlangRenderer().renderExpression(entries));
+        ErlangRenderer.renderExpression(entries));
   }
 
   @Test
@@ -862,8 +855,7 @@ class ErlangRendererTest {
             "Req",
             RemoteCallExpr.of("mod", "encode", List.of(Variable.of("Input"))),
             AtomExpr.of("done"));
-    assertEquals(
-        "Req = mod:encode(Input),\ndone.", new ErlangRenderer().renderStatement(expression));
+    assertEquals("Req = mod:encode(Input),\ndone.", ErlangRenderer.renderStatement(expression));
   }
 
   @Test
@@ -885,7 +877,7 @@ class ErlangRendererTest {
         query_suffix(Query) when map_size(Query) =:= 0 -> <<>>;
         query_suffix(Query) -> other.
         """;
-    assertEquals(expected, new ErlangRenderer().renderFunction(function));
+    assertEquals(expected, ErlangRenderer.renderFunction(function));
   }
 
   @Test
@@ -906,7 +898,7 @@ class ErlangRendererTest {
         """
         resolve_from_env({Id, Secret}) when Id =/= false, Secret =/= false -> ok.
         """;
-    assertEquals(expected, new ErlangRenderer().renderFunction(function));
+    assertEquals(expected, ErlangRenderer.renderFunction(function));
   }
 
   @Test
@@ -923,7 +915,7 @@ class ErlangRendererTest {
     String expected = """
         retry_clause(true) when Attempts > 1 -> backoff.
         """;
-    assertEquals(expected, new ErlangRenderer().renderFunction(function));
+    assertEquals(expected, ErlangRenderer.renderFunction(function));
   }
 
   @Test
@@ -935,7 +927,7 @@ class ErlangRendererTest {
             "{ok, basic_output()} | {error, term()}");
     assertEquals(
         "-callback handle_basic(term(), basic_input(), term()) -> {ok, basic_output()} | {error, term()}.\n",
-        new ErlangRenderer().renderCallbackForTest(callback));
+        new DefaultErlangRenderer().renderCallbackForTest(callback));
   }
 
   @Test
@@ -945,7 +937,7 @@ class ErlangRendererTest {
     Callback callback = Callback.of("very_long_callback_name", longInput, "ok()");
     assertEquals(
         "-callback very_long_callback_name(" + longInput + ") ->\n    ok().\n",
-        new ErlangRenderer().renderCallbackForTest(callback));
+        new DefaultErlangRenderer().renderCallbackForTest(callback));
   }
 
   @Test
@@ -962,14 +954,14 @@ class ErlangRendererTest {
         -callback handle_get_type_closure(Ctx :: term(), Input :: get_type_closure_input(), Meta :: term()) ->
             {ok, get_type_closure_output()} | {error, term()}.
         """;
-    assertEquals(expected, new ErlangRenderer().renderCallbackForTest(callback));
+    assertEquals(expected, new DefaultErlangRenderer().renderCallbackForTest(callback));
   }
 
   @Test
   void rendersEmptyRecord() {
     Header header =
         Header.of(List.of(), List.of(RecordDef.of("health_check_input", List.of())), null);
-    assertEquals("-record(health_check_input, {}).\n", new ErlangRenderer().render(header));
+    assertEquals("-record(health_check_input, {}).\n", ErlangRenderer.render(header));
   }
 
   @Test
@@ -996,7 +988,7 @@ class ErlangRendererTest {
             '__beam_error_kind' = server :: client | server
         }).
         """;
-    assertEquals(expected, new ErlangRenderer().render(header));
+    assertEquals(expected, ErlangRenderer.render(header));
   }
 
   @Test
@@ -1004,7 +996,7 @@ class ErlangRendererTest {
     TypeAlias alias = TypeAlias.of("pa_blob", "binary()", List.of("@doc A blob payload."));
     assertEquals(
         "%% @doc A blob payload.\n-type pa_blob() :: binary().\n",
-        new ErlangRenderer().renderTypeAliasForTest(alias));
+        new DefaultErlangRenderer().renderTypeAliasForTest(alias));
   }
 
   @Test
@@ -1025,7 +1017,7 @@ class ErlangRendererTest {
             | {flag, basic_boolean()}
             | {unknown, binary()}.
         """;
-    assertEquals(expected, new ErlangRenderer().renderTypeAliasForTest(alias));
+    assertEquals(expected, new DefaultErlangRenderer().renderTypeAliasForTest(alias));
   }
 
   @Test
@@ -1033,7 +1025,7 @@ class ErlangRendererTest {
     TypeAlias alias = TypeAlias.of("basic_item", "#basic_item{}");
     assertEquals(
         "-type basic_item() :: #basic_item{}.\n",
-        new ErlangRenderer().renderTypeAliasForTest(alias));
+        new DefaultErlangRenderer().renderTypeAliasForTest(alias));
   }
 
   @Test
@@ -1059,7 +1051,7 @@ class ErlangRendererTest {
         -callback handle_get_type_closure(Ctx :: term(), Input :: get_type_closure_input(), Meta :: term()) ->
             {ok, get_type_closure_output()} | {error, term()}.
         """;
-    assertEquals(expected, new ErlangRenderer().render(module));
+    assertEquals(expected, ErlangRenderer.render(module));
   }
 
   @Test
@@ -1080,7 +1072,7 @@ class ErlangRendererTest {
                 "Call basic_service_server:init_handlers/0 during application start before dispatch.",
                 "Default impl module: basic_service_impl."));
 
-    String rendered = new ErlangRenderer().render(module);
+    String rendered = ErlangRenderer.render(module);
     assertTrue(rendered.contains("-behaviour(basic_service_behaviour)."));
     assertTrue(rendered.contains("-define(DEFAULT_IMPL, basic_service_impl)."));
     assertTrue(rendered.contains("-define(HANDLERS_KEY, {basic_service_server, handlers})."));

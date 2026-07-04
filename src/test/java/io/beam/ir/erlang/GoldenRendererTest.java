@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 class GoldenRendererTest {
 
-  private final ErlangRenderer renderer = new ErlangRenderer();
+  private final Renderer renderer = ErlangRenderer.create();
 
   @Test
   void rendersBasicServiceRestJson1Module() throws IOException {
