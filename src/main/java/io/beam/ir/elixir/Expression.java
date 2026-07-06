@@ -19,4 +19,10 @@ public sealed interface Expression extends Node
         InfixExpr,
         PipeExpr,
         MatchExpr,
-        InterpolatedStringExpr {}
+        InterpolatedStringExpr,
+        CaseExpr,
+        IfExpr,
+        BlockExpr,
+        AnonFun,
+        TryExpr,
+        RaiseExpr {}

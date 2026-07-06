@@ -173,4 +173,71 @@ class ElixirRendererTest {
                     new InterpolatedExpr(Variable.of("part_b"))),
                 null)));
   }
+
+  @Test
+  void rendersCaseExpr() {
+    String rendered =
+        ElixirRenderer.renderExpression(
+            new CaseExpr(
+                RemoteCallExpr.of(
+                    "RuntimeHttp",
+                    "dispatch",
+                    List.of(Variable.of("config"), Variable.of("req"))),
+                List.of(
+                    Clause.of(
+                        TuplePattern.of(
+                            List.of(AtomPattern.of("ok"), VariablePattern.of("resp"))),
+                        RemoteCallExpr.of(
+                            "HttpServiceRestJson1",
+                            "decode_get_name_response",
+                            List.of(Variable.of("resp")))),
+                    Clause.of(
+                        TuplePattern.of(
+                            List.of(AtomPattern.of("error"), VariablePattern.of("reason"))),
+                        TupleExpr.of(
+                            List.of(
+                                AtomExpr.of("error"), Variable.of("reason"))))),
+                null));
+    assertEquals(
+        """
+        case RuntimeHttp.dispatch(config, req) do
+          {:ok, resp} -> HttpServiceRestJson1.decode_get_name_response(resp)
+          {:error, reason} -> {:error, reason}
+        end""",
+        rendered);
+  }
+
+  @Test
+  void rendersInlineIfExpr() {
+    assertEquals(
+        "if(body == \"\", do: %{}, else: Jason.decode!(body))",
+        ElixirRenderer.renderExpression(
+            new IfExpr(
+                new InfixExpr(
+                    Variable.of("body"), "==", StringExpr.of(""), null),
+                MapExpr.of(List.of()),
+                RemoteCallExpr.of("Jason", "decode!", List.of(Variable.of("body"))),
+                true,
+                null)));
+  }
+
+  @Test
+  void rendersAnonFun() {
+    assertEquals(
+        "fn x -> x end",
+        ElixirRenderer.renderExpression(
+            new AnonFun(
+                List.of(
+                    new AnonFunClause(
+                        List.of(VariablePattern.of("x")), Variable.of("x"), null)),
+                null)));
+  }
+
+  @Test
+  void rendersRaiseExpr() {
+    assertEquals(
+        "raise(ArgumentError, \"unknown event\")",
+        ElixirRenderer.renderExpression(
+            RaiseExpr.parenthesized(Variable.of("ArgumentError"), StringExpr.of("unknown event"))));
+  }
 }

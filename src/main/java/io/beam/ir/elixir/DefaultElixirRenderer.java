@@ -65,6 +65,18 @@ final class DefaultElixirRenderer implements Renderer {
       render(match, out, indent);
     } else if (expression instanceof InterpolatedStringExpr string) {
       render(string, out, indent);
+    } else if (expression instanceof CaseExpr caseExpr) {
+      render(caseExpr, out, indent);
+    } else if (expression instanceof IfExpr ifExpr) {
+      render(ifExpr, out, indent);
+    } else if (expression instanceof BlockExpr block) {
+      render(block, out, indent);
+    } else if (expression instanceof AnonFun fun) {
+      render(fun, out, indent);
+    } else if (expression instanceof TryExpr tryExpr) {
+      render(tryExpr, out, indent);
+    } else if (expression instanceof RaiseExpr raise) {
+      render(raise, out, indent);
     } else {
       throw new IllegalArgumentException("Unsupported expression: " + expression);
     }
@@ -263,6 +275,167 @@ final class DefaultElixirRenderer implements Renderer {
     out.append('"');
   }
 
+  private void render(CaseExpr caseExpr, StringBuilder out, String indent) {
+    out.append("case ");
+    render(caseExpr.subject(), out, indent);
+    out.append(" do\n");
+    List<Clause> clauses = caseExpr.clauses();
+    for (int i = 0; i < clauses.size(); i++) {
+      if (i > 0 && usesBlankLineBetweenCaseClauses(clauses.get(i - 1), clauses.get(i))) {
+        out.append('\n');
+      }
+      out.append(indent).append(INDENT);
+      render(clauses.get(i).pattern(), out);
+      out.append(" ->");
+      Expression body = clauses.get(i).body();
+      if (usesMultilineCaseBody(body)) {
+        out.append('\n');
+        out.append(indent).append(INDENT).append(INDENT);
+        render(body, out, indent + INDENT + INDENT);
+      } else {
+        out.append(' ');
+        render(body, out, indent + INDENT);
+      }
+      if (i < clauses.size() - 1) {
+        out.append('\n');
+      }
+    }
+    out.append('\n').append(indent).append("end");
+  }
+
+  private boolean usesBlankLineBetweenCaseClauses(Clause previous, Clause next) {
+    return usesMultilineCaseBody(previous.body()) || usesMultilineCaseBody(next.body());
+  }
+
+  private boolean usesMultilineCaseBody(Expression body) {
+    return body instanceof CaseExpr
+        || body instanceof BlockExpr
+        || body instanceof MatchExpr
+        || body instanceof TryExpr
+        || body instanceof AnonFun;
+  }
+
+  private void render(IfExpr ifExpr, StringBuilder out, String indent) {
+    if (ifExpr.inline()) {
+      out.append("if(");
+      render(ifExpr.condition(), out, indent);
+      out.append(", do: ");
+      render(ifExpr.thenBranch(), out, indent);
+      if (ifExpr.elseBranchOrNull() != null) {
+        out.append(", else: ");
+        render(ifExpr.elseBranchOrNull(), out, indent);
+      }
+      out.append(')');
+      return;
+    }
+    out.append("if ");
+    render(ifExpr.condition(), out, indent);
+    out.append(" do\n");
+    out.append(indent).append(INDENT);
+    render(ifExpr.thenBranch(), out, indent + INDENT);
+    if (ifExpr.elseBranchOrNull() != null) {
+      out.append("\n").append(indent).append("else\n");
+      out.append(indent).append(INDENT);
+      render(ifExpr.elseBranchOrNull(), out, indent + INDENT);
+    }
+    out.append('\n').append(indent).append("end");
+  }
+
+  private void render(BlockExpr block, StringBuilder out, String indent) {
+    for (int i = 0; i < block.statements().size(); i++) {
+      if (i > 0) {
+        out.append('\n');
+        if (!indent.isEmpty()) {
+          out.append(indent);
+        }
+      }
+      render(block.statements().get(i), out, indent);
+    }
+  }
+
+  private void render(AnonFun fun, StringBuilder out, String indent) {
+    List<AnonFunClause> clauses = fun.clauses();
+    if (clauses.size() == 1 && isCompactAnonFun(clauses.get(0))) {
+      AnonFunClause clause = clauses.get(0);
+      out.append("fn ");
+      renderAnonFunParams(clause.params(), out);
+      out.append(" -> ");
+      render(clause.body(), out, indent);
+      out.append(" end");
+      return;
+    }
+    out.append("fn\n");
+    for (int i = 0; i < clauses.size(); i++) {
+      out.append(indent).append(INDENT);
+      renderAnonFunParams(clauses.get(i).params(), out);
+      out.append(" ->\n");
+      out.append(indent).append(INDENT).append(INDENT);
+      render(clauses.get(i).body(), out, indent + INDENT + INDENT);
+      if (i < clauses.size() - 1) {
+        out.append('\n');
+      }
+    }
+    out.append('\n').append(indent).append("end");
+  }
+
+  private boolean isCompactAnonFun(AnonFunClause clause) {
+    return !usesMultilineCaseBody(clause.body());
+  }
+
+  private void renderAnonFunParams(List<Pattern> params, StringBuilder out) {
+    if (params.size() == 1) {
+      render(params.get(0), out);
+      return;
+    }
+    out.append('(');
+    for (int i = 0; i < params.size(); i++) {
+      if (i > 0) {
+        out.append(", ");
+      }
+      render(params.get(i), out);
+    }
+    out.append(')');
+  }
+
+  private void render(TryExpr tryExpr, StringBuilder out, String indent) {
+    out.append("try do\n");
+    out.append(indent).append(INDENT);
+    render(tryExpr.body(), out, indent + INDENT);
+    out.append("\n").append(indent).append("catch\n");
+    for (int i = 0; i < tryExpr.catchClauses().size(); i++) {
+      CatchClause clause = tryExpr.catchClauses().get(i);
+      out.append(indent).append(INDENT);
+      render(clause.kind(), out);
+      out.append(", ");
+      render(clause.reason(), out);
+      out.append(" -> ");
+      render(clause.body(), out, indent + INDENT);
+      if (i < tryExpr.catchClauses().size() - 1) {
+        out.append('\n');
+      }
+    }
+    out.append('\n').append(indent).append("end");
+  }
+
+  private void render(RaiseExpr raise, StringBuilder out, String indent) {
+    if (raise.parenthesized()) {
+      out.append("raise(");
+      render(raise.exception(), out, indent);
+      if (raise.messageOrNull() != null) {
+        out.append(", ");
+        render(raise.messageOrNull(), out, indent);
+      }
+      out.append(')');
+      return;
+    }
+    out.append("raise ");
+    render(raise.exception(), out, indent);
+    if (raise.messageOrNull() != null) {
+      out.append(", ");
+      render(raise.messageOrNull(), out, indent);
+    }
+  }
+
   private void render(RemoteCallExpr call, StringBuilder out, String indent) {
     if (!callExceedsPrintWidth(call.module(), call.function(), call.args(), null)) {
       out.append(call.module()).append('.').append(call.function()).append('(');
@@ -411,6 +584,19 @@ final class DefaultElixirRenderer implements Renderer {
       render(struct, out);
     } else if (pattern instanceof VariablePattern variable) {
       out.append(variable.name());
+    } else if (pattern instanceof AtomPattern atom) {
+      out.append(':').append(atom.value());
+    } else if (pattern instanceof WildcardPattern) {
+      out.append('_');
+    } else if (pattern instanceof TuplePattern tuple) {
+      out.append('{');
+      for (int i = 0; i < tuple.elements().size(); i++) {
+        if (i > 0) {
+          out.append(", ");
+        }
+        render(tuple.elements().get(i), out);
+      }
+      out.append('}');
     } else {
       throw new IllegalArgumentException("Unsupported pattern: " + pattern);
     }

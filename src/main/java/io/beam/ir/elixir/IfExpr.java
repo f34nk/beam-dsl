@@ -1,0 +1,9 @@
+package io.beam.ir.elixir;
+
+public record IfExpr(
+    Expression condition,
+    Expression thenBranch,
+    Expression elseBranchOrNull,
+    boolean inline,
+    SourceSpan source)
+    implements Expression {}
