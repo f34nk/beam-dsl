@@ -75,8 +75,6 @@ final class DefaultElixirRenderer implements Renderer {
       out.append("nil");
     } else if (expression instanceof BooleanExpr bool) {
       out.append(bool.value());
-    } else if (expression instanceof OpaqueExpr opaque) {
-      renderOpaque(opaque, out, indent);
     } else if (expression instanceof TupleExpr tuple) {
       render(tuple, out, indent);
     } else if (expression instanceof ListExpr list) {
@@ -117,56 +115,6 @@ final class DefaultElixirRenderer implements Renderer {
       render(binary, out, indent);
     } else {
       throw new IllegalArgumentException("Unsupported expression: " + expression);
-    }
-  }
-
-  private void renderOpaque(OpaqueExpr opaque, StringBuilder out, String indent) {
-    String text = opaque.text().stripTrailing();
-    if (!text.contains("\n")) {
-      out.append(text);
-      return;
-    }
-    String[] rawLines = text.split("\n", -1);
-    int end = rawLines.length;
-    while (end > 0 && rawLines[end - 1].isEmpty()) {
-      end--;
-    }
-    int blockDepth = 0;
-    boolean matchContinuation = false;
-    boolean clauseBody = false;
-    for (int i = 0; i < end; i++) {
-      String line = rawLines[i].stripLeading();
-      if (line.isEmpty()) {
-        out.append('\n');
-        continue;
-      }
-      if ("end".equals(line)) {
-        blockDepth = Math.max(0, blockDepth - 1);
-      }
-      if (i > 0 && !rawLines[i - 1].isEmpty()) {
-        out.append('\n');
-      }
-      out.append(indent);
-      int extraDepth = blockDepth + (matchContinuation ? 1 : 0);
-      if (line.contains(" ->") && !line.endsWith(" do")) {
-        clauseBody = true;
-      } else if (clauseBody && !line.isEmpty()) {
-        extraDepth = blockDepth + 1;
-      }
-      for (int depth = 0; depth < extraDepth; depth++) {
-        out.append(INDENT);
-      }
-      out.append(line);
-      matchContinuation = line.endsWith("=");
-      if (line.endsWith(" do")) {
-        blockDepth++;
-        clauseBody = false;
-      }
-      if (line.contains(" ->") && !line.endsWith(" do")) {
-        // keep clauseBody true for following lines
-      } else if (!line.isEmpty() && !line.contains(" ->")) {
-        clauseBody = false;
-      }
     }
   }
 
@@ -415,7 +363,6 @@ final class DefaultElixirRenderer implements Renderer {
         || body instanceof MatchExpr
         || body instanceof TryExpr
         || body instanceof AnonFun
-        || body instanceof OpaqueExpr opaque && opaque.text().contains("\n")
         || body instanceof IfExpr ifExpr && !ifExpr.inline();
   }
 

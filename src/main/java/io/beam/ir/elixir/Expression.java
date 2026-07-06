@@ -7,7 +7,6 @@ public sealed interface Expression extends Node
         StringExpr,
         NilExpr,
         BooleanExpr,
-        OpaqueExpr,
         TupleExpr,
         ListExpr,
         MapExpr,
