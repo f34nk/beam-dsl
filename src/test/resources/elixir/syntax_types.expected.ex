@@ -23,12 +23,7 @@ defmodule SyntaxTypes do
             host: binary() | nil
           }
 
-    defstruct method: "GET",
-              path: "/",
-              query: %{},
-              headers: [],
-              body: "",
-              host: nil
+    defstruct method: "GET", path: "/", query: %{}, headers: [], body: "", host: nil
   end
 
   defmodule Response do
