@@ -47,6 +47,8 @@ final class DefaultElixirRenderer implements Renderer {
       render(list, out, indent);
     } else if (expression instanceof MapExpr map) {
       render(map, out, indent);
+    } else if (expression instanceof StructExpr struct) {
+      render(struct, out, indent);
     } else {
       throw new IllegalArgumentException("Unsupported expression: " + expression);
     }
@@ -166,6 +168,109 @@ final class DefaultElixirRenderer implements Renderer {
         });
   }
 
+  private void render(StructExpr struct, StringBuilder out, String indent) {
+    if (!structExceedsPrintWidth(struct)) {
+      out.append('%').append(struct.moduleName()).append('{');
+      if (struct.baseOrNull() != null) {
+        render(struct.baseOrNull(), out, indent);
+        out.append(" | ");
+      }
+      renderStructFields(struct.fields(), out, indent);
+      out.append('}');
+      return;
+    }
+    out.append('%').append(struct.moduleName()).append("{\n");
+    String fieldIndent = indent + INDENT;
+    if (struct.baseOrNull() != null) {
+      out.append(fieldIndent);
+      render(struct.baseOrNull(), out, fieldIndent);
+      out.append(" |\n");
+    }
+    for (int i = 0; i < struct.fields().size(); i++) {
+      if (i > 0) {
+        out.append(",\n");
+      }
+      out.append(fieldIndent);
+      StructField field = struct.fields().get(i);
+      out.append(field.name()).append(": ");
+      render(field.value(), out, fieldIndent);
+    }
+    out.append('\n').append(indent).append('}');
+  }
+
+  private void renderStructFields(List<StructField> fields, StringBuilder out, String indent) {
+    for (int i = 0; i < fields.size(); i++) {
+      if (i > 0) {
+        out.append(", ");
+      }
+      StructField field = fields.get(i);
+      out.append(field.name()).append(": ");
+      render(field.value(), out, indent);
+    }
+  }
+
+  private boolean structExceedsPrintWidth(StructExpr struct) {
+    return exceedsPrintWidth(
+        scratch -> {
+          scratch.append('%').append(struct.moduleName()).append('{');
+          if (struct.baseOrNull() != null) {
+            render(struct.baseOrNull(), scratch, "");
+            scratch.append(" | ");
+          }
+          renderStructFields(struct.fields(), scratch, "");
+          scratch.append('}');
+        });
+  }
+
+  private void render(Pattern pattern, StringBuilder out) {
+    if (pattern instanceof StructPattern struct) {
+      render(struct, out);
+    } else if (pattern instanceof VariablePattern variable) {
+      out.append(variable.name());
+    } else {
+      throw new IllegalArgumentException("Unsupported pattern: " + pattern);
+    }
+  }
+
+  private void render(StructPattern struct, StringBuilder out) {
+    if (struct.moduleNameOrNull() != null) {
+      out.append('%').append(struct.moduleNameOrNull()).append('{');
+      renderStructPatternFields(struct.fields(), out);
+      out.append('}');
+      return;
+    }
+    out.append("%{");
+    for (int i = 0; i < struct.fields().size(); i++) {
+      if (i > 0) {
+        out.append(", ");
+      }
+      StructPatternField field = struct.fields().get(i);
+      if (field.nameOrNull() != null) {
+        out.append(':').append(field.nameOrNull()).append(" => ");
+        render(field.pattern(), out);
+      } else {
+        render(field.pattern(), out);
+      }
+    }
+    out.append('}');
+  }
+
+  private void renderStructPatternFields(
+      List<StructPatternField> fields, StringBuilder out) {
+    for (int i = 0; i < fields.size(); i++) {
+      if (i > 0) {
+        out.append(", ");
+      }
+      StructPatternField field = fields.get(i);
+      if (field.nameOrNull() != null) {
+        out.append(field.nameOrNull()).append(": ");
+        render(field.pattern(), out);
+      } else {
+        render(field.pattern(), out);
+      }
+    }
+  }
+
   private static String escapeString(String value) {
     return value.replace("\\", "\\\\").replace("\"", "\\\"");
   }
@@ -194,6 +299,8 @@ final class DefaultElixirRenderer implements Renderer {
 
   @Override
   public String renderPattern(Pattern pattern) {
-    throw new UnsupportedOperationException("Pattern rendering not implemented");
+    StringBuilder out = new StringBuilder();
+    render(pattern, out);
+    return out.toString();
   }
 }

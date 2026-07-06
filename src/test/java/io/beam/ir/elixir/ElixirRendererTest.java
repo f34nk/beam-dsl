@@ -62,4 +62,42 @@ class ElixirRendererTest {
             MapExpr.of(
                 Variable.of("acc"), List.of(MapEntry.atomKey("key", Variable.of("val"))))));
   }
+
+  @Test
+  void rendersStructExpr() {
+    assertEquals(
+        "%RuntimeTypes.HttpRequest{}",
+        ElixirRenderer.renderExpression(StructExpr.of("RuntimeTypes.HttpRequest", List.of())));
+    assertEquals(
+        "%Types.BasicItem{name: item}",
+        ElixirRenderer.renderExpression(
+            StructExpr.of(
+                "Types.BasicItem", List.of(StructField.of("name", Variable.of("item"))))));
+    assertEquals(
+        "%HttpRequest{request | headers: headers}",
+        ElixirRenderer.renderExpression(
+            StructExpr.update(
+                Variable.of("request"),
+                "HttpRequest",
+                List.of(StructField.of("headers", Variable.of("headers"))))));
+  }
+
+  @Test
+  void rendersStructPattern() {
+    assertEquals(
+        "%RuntimeTypes.HttpResponse{status: status}",
+        ElixirRenderer.renderPattern(
+            new StructPattern(
+                "RuntimeTypes.HttpResponse",
+                List.of(new StructPatternField("status", VariablePattern.of("status"), null)),
+                null)));
+    assertEquals(
+        "%{:headers => headers}",
+        ElixirRenderer.renderPattern(
+            new StructPattern(
+                null,
+                List.of(
+                    new StructPatternField("headers", VariablePattern.of("headers"), null)),
+                null)));
+  }
 }

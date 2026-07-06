@@ -10,4 +10,5 @@ public sealed interface Expression extends Node
         OpaqueExpr,
         TupleExpr,
         ListExpr,
-        MapExpr {}
+        MapExpr,
+        StructExpr {}
