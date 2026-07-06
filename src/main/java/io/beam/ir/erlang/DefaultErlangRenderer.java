@@ -51,11 +51,6 @@ final class DefaultErlangRenderer implements Renderer {
 
   @Override
   public String render(Module module) {
-    if (module.verbatimOrNull() != null) {
-      return module.verbatimOrNull().endsWith("\n")
-          ? module.verbatimOrNull()
-          : module.verbatimOrNull() + "\n";
-    }
     StringBuilder out = new StringBuilder();
 
     if (module.headerComments() != null) {
@@ -132,11 +127,6 @@ final class DefaultErlangRenderer implements Renderer {
 
   @Override
   public String render(Header header) {
-    if (header.verbatimOrNull() != null) {
-      return header.verbatimOrNull().endsWith("\n")
-          ? header.verbatimOrNull()
-          : header.verbatimOrNull() + "\n";
-    }
     StringBuilder out = new StringBuilder();
     if (header.entriesOrNull() != null) {
       renderHeaderEntries(header.entriesOrNull(), header.separateEntries(), out);
@@ -258,11 +248,6 @@ final class DefaultErlangRenderer implements Renderer {
 
   @Override
   public String renderFunction(Function function) {
-    if (function.verbatimOrNull() != null) {
-      return function.verbatimOrNull().endsWith("\n")
-          ? function.verbatimOrNull()
-          : function.verbatimOrNull() + "\n";
-    }
     StringBuilder out = new StringBuilder();
     renderFunctionDefinition(function, out, true);
     return out.toString().stripTrailing() + "\n";

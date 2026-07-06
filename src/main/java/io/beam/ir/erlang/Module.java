@@ -14,11 +14,10 @@ public record Module(
     List<TypeAlias> typeAliases,
     List<String> exports,
     boolean suppressExport,
-    List<String> epilogueComments,
-    String verbatimOrNull) {
+    List<String> epilogueComments) {
 
   public Module(String name, List<Function> functions) {
-    this(name, functions, null, null, null, null, null, null, null, null, false, null, null);
+    this(name, functions, null, null, null, null, null, null, null, null, false, null);
   }
 
   public static Module of(String name, List<Function> functions) {
@@ -43,7 +42,6 @@ public record Module(
         null,
         null,
         false,
-        null,
         null);
   }
 
@@ -66,7 +64,6 @@ public record Module(
         typeAliases,
         null,
         false,
-        null,
         null);
   }
 
@@ -90,7 +87,6 @@ public record Module(
         typeAliases,
         exports,
         false,
-        null,
         null);
   }
 
@@ -108,7 +104,6 @@ public record Module(
         null,
         null,
         true,
-        null,
         null);
   }
 
@@ -136,12 +131,6 @@ public record Module(
         null,
         exports,
         false,
-        epilogueComments,
-        null);
-  }
-
-  public static Module verbatim(String content) {
-    return new Module(
-        "", List.of(), null, null, null, null, null, null, null, null, false, null, content);
+        epilogueComments);
   }
 }

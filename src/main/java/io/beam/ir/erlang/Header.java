@@ -7,12 +7,11 @@ public record Header(
     List<RecordDef> records,
     List<TypeAlias> typeAliases,
     List<HeaderEntry> entriesOrNull,
-    boolean separateEntries,
-    String verbatimOrNull) {
+    boolean separateEntries) {
 
   public static Header of(
       List<String> comments, List<RecordDef> records, List<TypeAlias> typeAliases) {
-    return new Header(comments, records, typeAliases, null, true, null);
+    return new Header(comments, records, typeAliases, null, true);
   }
 
   public static Header ofEntries(List<HeaderEntry> entries) {
@@ -20,10 +19,6 @@ public record Header(
   }
 
   public static Header ofEntries(List<HeaderEntry> entries, boolean separateEntries) {
-    return new Header(null, null, null, entries, separateEntries, null);
-  }
-
-  public static Header verbatim(String content) {
-    return new Header(null, null, null, null, true, content);
+    return new Header(null, null, null, entries, separateEntries);
   }
 }
