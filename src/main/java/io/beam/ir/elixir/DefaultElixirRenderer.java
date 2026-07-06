@@ -769,8 +769,9 @@ final class DefaultElixirRenderer implements Renderer {
       render(cons.tail(), out);
       out.append(']');
     } else if (pattern instanceof AssignPattern assign) {
-      out.append(assign.name()).append(" = ");
-      render(assign.pattern(), out);
+      render(assign.left(), out);
+      out.append(" = ");
+      render(assign.right(), out);
     } else if (pattern instanceof IntegerPattern integer) {
       out.append(integer.value());
     } else if (pattern instanceof BinaryPattern binary) {

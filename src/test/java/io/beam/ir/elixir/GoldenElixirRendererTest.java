@@ -359,7 +359,9 @@ class GoldenElixirRendererTest {
     return new Function(
         "decode",
         false,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("map) when is_map(map")))),
+        List.of(
+            FunctionHead.of(
+                List.of(VariablePattern.of("map")), IsTypeGuard.of("is_map", "map"))),
         StructExpr.of(
             "Item",
             List.of(
@@ -496,7 +498,8 @@ class GoldenElixirRendererTest {
     return new Function(
         "with_spec_no_doc",
         false,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("v) when is_binary(v")))),
+        List.of(
+            FunctionHead.of(List.of(VariablePattern.of("v")), IsTypeGuard.of("is_binary", "v"))),
         TupleExpr.of(List.of(AtomExpr.of("unknown"), Variable.of("v"))),
         null,
         null,
@@ -532,7 +535,8 @@ class GoldenElixirRendererTest {
     return new Function(
         "decode_enum",
         false,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("v) when is_binary(v")))),
+        List.of(
+            FunctionHead.of(List.of(VariablePattern.of("v")), IsTypeGuard.of("is_binary", "v"))),
         TupleExpr.of(List.of(AtomExpr.of("unknown"), Variable.of("v"))),
         null,
         null,
@@ -592,7 +596,9 @@ class GoldenElixirRendererTest {
     return new Function(
         "decode_union",
         false,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("map) when is_map(map")))),
+        List.of(
+            FunctionHead.of(
+                List.of(VariablePattern.of("map")), IsTypeGuard.of("is_map", "map"))),
         new CaseExpr(
             RemoteCallExpr.of("Map", "to_list", List.of(Variable.of("map"))),
             List.of(
@@ -671,7 +677,9 @@ class GoldenElixirRendererTest {
         List.of(
             FunctionHead.of(
                 List.of(
-                    VariablePattern.of("{:unknown"), OpaquePattern.of("k}) when is_binary(k")))),
+                    TuplePattern.of(
+                        List.of(AtomPattern.of("unknown"), VariablePattern.of("k")))),
+                IsTypeGuard.of("is_binary", "k"))),
         MapExpr.of(List.of(MapEntry.pair(Variable.of("k"), NilExpr.of()))),
         null,
         null,
@@ -757,7 +765,13 @@ class GoldenElixirRendererTest {
     return new Function(
         "match_patterns",
         false,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("%{\"key\" => value}")))),
+        List.of(
+            FunctionHead.of(
+                List.of(
+                    MapPattern.of(
+                        List.of(
+                            MapPatternEntry.of(
+                                StringExpr.of("key"), VariablePattern.of("value"))))))),
         TupleExpr.of(List.of(AtomExpr.of("map"), Variable.of("value"))),
         null,
         null,
@@ -799,7 +813,10 @@ class GoldenElixirRendererTest {
         "match_patterns",
         false,
         List.of(
-            FunctionHead.of(List.of(VariablePattern.of("{:tag"), VariablePattern.of("value}")))),
+            FunctionHead.of(
+                List.of(
+                    TuplePattern.of(
+                        List.of(AtomPattern.of("tag"), VariablePattern.of("value")))))),
         TupleExpr.of(List.of(AtomExpr.of("tuple"), Variable.of("value"))),
         null,
         null,
@@ -812,7 +829,12 @@ class GoldenElixirRendererTest {
         "match_patterns",
         false,
         List.of(
-            FunctionHead.of(List.of(AssignPattern.of("<<_::binary>>", OpaquePattern.of("bin"))))),
+            FunctionHead.of(
+                List.of(
+                    AssignPattern.of(
+                        BinaryPattern.of(
+                            List.of(BinarySegmentPattern.of(WildcardPattern.of(), "binary"))),
+                        VariablePattern.of("bin"))))),
         TupleExpr.of(List.of(AtomExpr.of("binary"), Variable.of("bin"))),
         null,
         null,
@@ -824,7 +846,8 @@ class GoldenElixirRendererTest {
     return new Function(
         "match_patterns",
         false,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("v) when is_integer(v")))),
+        List.of(
+            FunctionHead.of(List.of(VariablePattern.of("v")), IsTypeGuard.of("is_integer", "v"))),
         TupleExpr.of(List.of(AtomExpr.of("int"), Variable.of("v"))),
         null,
         null,
@@ -836,7 +859,8 @@ class GoldenElixirRendererTest {
     return new Function(
         "match_patterns",
         false,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("v) when is_atom(v")))),
+        List.of(
+            FunctionHead.of(List.of(VariablePattern.of("v")), IsTypeGuard.of("is_atom", "v"))),
         TupleExpr.of(List.of(AtomExpr.of("atom"), Variable.of("v"))),
         null,
         null,
@@ -924,7 +948,13 @@ class GoldenElixirRendererTest {
     return new Function(
         "retryable?",
         true,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("{:error, %TaggedError{}}")))),
+        List.of(
+            FunctionHead.of(
+                List.of(
+                    TuplePattern.of(
+                        List.of(
+                            AtomPattern.of("error"),
+                            StructPattern.of("TaggedError", List.of())))))),
         Variable.of("true"),
         null,
         null,
@@ -987,7 +1017,8 @@ class GoldenElixirRendererTest {
     return new Function(
         "encode_value",
         true,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("v) when is_binary(v")))),
+        List.of(
+            FunctionHead.of(List.of(VariablePattern.of("v")), IsTypeGuard.of("is_binary", "v"))),
         Variable.of("v"),
         null,
         null,
@@ -1058,7 +1089,9 @@ class GoldenElixirRendererTest {
     return new Function(
         "flatten_pairs",
         true,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("map) when is_map(map")))),
+        List.of(
+            FunctionHead.of(
+                List.of(VariablePattern.of("map")), IsTypeGuard.of("is_map", "map"))),
         flattenPairsBody(),
         null,
         null,
@@ -1084,7 +1117,8 @@ class GoldenElixirRendererTest {
         true,
         List.of(
             FunctionHead.of(
-                List.of(VariablePattern.of("key"), OpaquePattern.of("value) when is_map(value")))),
+                List.of(VariablePattern.of("key"), VariablePattern.of("value")),
+                IsTypeGuard.of("is_map", "value"))),
         ListExpr.of(List.of(TupleExpr.of(List.of(Variable.of("key"), Variable.of("value"))))),
         null,
         null,
@@ -1121,7 +1155,8 @@ class GoldenElixirRendererTest {
                     TuplePattern.of(List.of(WildcardPattern.of(), PinPattern.of("expected"))),
                     Variable.of("true")),
                 Clause.of(
-                    OpaquePattern.of("{_, ct} when is_binary(ct)"),
+                    TuplePattern.of(List.of(WildcardPattern.of(), VariablePattern.of("ct"))),
+                    IsTypeGuard.of("is_binary", "ct"),
                     new InfixExpr(
                         LocalCallExpr.of("ct_base", List.of(Variable.of("ct"))),
                         "==",
@@ -1194,7 +1229,8 @@ class GoldenElixirRendererTest {
                         "Map", "get", List.of(Variable.of("handlers"), Variable.of("fun"))),
                     List.of(
                         Clause.of(
-                            OpaquePattern.of("handler when is_function(handler, 3)"),
+                            VariablePattern.of("handler"),
+                            FunctionArityGuard.of("handler", 3),
                             dotCall(
                                 Variable.of("handler"),
                                 List.of(
@@ -1229,7 +1265,9 @@ class GoldenElixirRendererTest {
     return new Function(
         "decode_sparse_map",
         true,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("map) when is_map(map")))),
+        List.of(
+            FunctionHead.of(
+                List.of(VariablePattern.of("map")), IsTypeGuard.of("is_map", "map"))),
         RemoteCallExpr.of(
             "Map",
             "new",
@@ -1285,7 +1323,11 @@ class GoldenElixirRendererTest {
         new CaseExpr(
             RemoteCallExpr.of("Jason", "decode", List.of(Variable.of("body"))),
             List.of(
-                Clause.of(OpaquePattern.of("{:ok, map} when is_map(map)"), Variable.of("map")),
+                Clause.of(
+                    TuplePattern.of(
+                        List.of(AtomPattern.of("ok"), VariablePattern.of("map"))),
+                    IsTypeGuard.of("is_map", "map"),
+                    Variable.of("map")),
                 Clause.of(WildcardPattern.of(), MapExpr.of(List.of()))),
             null),
         null,
@@ -1408,7 +1450,8 @@ class GoldenElixirRendererTest {
         true,
         List.of(
             FunctionHead.of(
-                List.of(VariablePattern.of("prefix"), OpaquePattern.of("map) when is_map(map")))),
+                List.of(VariablePattern.of("prefix"), VariablePattern.of("map")),
+                IsTypeGuard.of("is_map", "map"))),
         RemoteCallExpr.of(
             "Enum",
             "map",
@@ -1448,7 +1491,8 @@ class GoldenElixirRendererTest {
     return new Function(
         "to_binary",
         true,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("v) when is_binary(v")))),
+        List.of(
+            FunctionHead.of(List.of(VariablePattern.of("v")), IsTypeGuard.of("is_binary", "v"))),
         Variable.of("v"),
         null,
         null,
@@ -1463,7 +1507,7 @@ class GoldenElixirRendererTest {
         List.of(
             FunctionHead.of(
                 List.of(ConsListPattern.of(VariablePattern.of("h"), VariablePattern.of("t"))),
-                OpaqueGuard.of("is_list(t)"))),
+                IsTypeGuard.of("is_list", "t"))),
         TupleExpr.of(
             List.of(
                 AtomExpr.of("list"),
@@ -1480,7 +1524,8 @@ class GoldenElixirRendererTest {
         "match_patterns",
         false,
         List.of(
-            FunctionHead.of(List.of(VariablePattern.of("v")), OpaqueGuard.of("is_function(v, 1)"))),
+            FunctionHead.of(
+                List.of(VariablePattern.of("v")), FunctionArityGuard.of("v", 1))),
         dotCall(Variable.of("v"), List.of(AtomExpr.of("syntax"))),
         null,
         null,
@@ -1511,7 +1556,7 @@ class GoldenElixirRendererTest {
             FunctionHead.of(
                 List.of(
                     VariablePattern.of("fun"),
-                    OpaquePattern.of("0"),
+                    IntegerPattern.of(0),
                     VariablePattern.of("_base"),
                     VariablePattern.of("_n")))),
         new DotCallExpr(Variable.of("fun"), "()", List.of(), null),
@@ -1550,7 +1595,8 @@ class GoldenElixirRendererTest {
                                 List.of(
                                     AnonFunClause.of(
                                         List.of(VariablePattern.of("v")),
-                                        OpaqueGuard.of("v != nil"),
+                                        new ComparisonGuard(
+                                            Variable.of("v"), "!=", NilExpr.of(), null),
                                         LocalCallExpr.of(
                                             "encode_value", List.of(Variable.of("v")))),
                                     AnonFunClause.of(
@@ -1577,7 +1623,8 @@ class GoldenElixirRendererTest {
     return new Function(
         "encode_value",
         true,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("v) when is_boolean(v")))),
+        List.of(
+            FunctionHead.of(List.of(VariablePattern.of("v")), IsTypeGuard.of("is_boolean", "v"))),
         RemoteCallExpr.of("Atom", "to_string", List.of(Variable.of("v"))),
         null,
         null,
@@ -1589,7 +1636,8 @@ class GoldenElixirRendererTest {
     return new Function(
         "encode_value",
         true,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("v) when is_integer(v")))),
+        List.of(
+            FunctionHead.of(List.of(VariablePattern.of("v")), IsTypeGuard.of("is_integer", "v"))),
         RemoteCallExpr.of("Integer", "to_string", List.of(Variable.of("v"))),
         null,
         null,
@@ -1601,7 +1649,8 @@ class GoldenElixirRendererTest {
     return new Function(
         "encode_value",
         true,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("v) when is_float(v")))),
+        List.of(
+            FunctionHead.of(List.of(VariablePattern.of("v")), IsTypeGuard.of("is_float", "v"))),
         RemoteCallExpr.of("Float", "to_string", List.of(Variable.of("v"))),
         null,
         null,
@@ -1613,7 +1662,8 @@ class GoldenElixirRendererTest {
     return new Function(
         "encode_value",
         true,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("v) when is_atom(v")))),
+        List.of(
+            FunctionHead.of(List.of(VariablePattern.of("v")), IsTypeGuard.of("is_atom", "v"))),
         RemoteCallExpr.of("Atom", "to_string", List.of(Variable.of("v"))),
         null,
         null,
@@ -1625,7 +1675,12 @@ class GoldenElixirRendererTest {
     return new Function(
         "parse_header",
         true,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("\"[\" <> _ = line")))),
+        List.of(
+            FunctionHead.of(
+                List.of(
+                    AssignPattern.of(
+                        ConcatPattern.of(StringPattern.of("["), WildcardPattern.of()),
+                        VariablePattern.of("line"))))),
         RemoteCallExpr.of("String", "trim", List.of(Variable.of("line"))),
         null,
         null,
@@ -1650,7 +1705,7 @@ class GoldenElixirRendererTest {
         "decode_list",
         true,
         List.of(
-            FunctionHead.of(List.of(VariablePattern.of("list")), IsTypeGuard.of("list", "list"))),
+            FunctionHead.of(List.of(VariablePattern.of("list")), IsTypeGuard.of("is_list", "list"))),
         RemoteCallExpr.of(
             "Enum", "reject", List.of(Variable.of("list"), CaptureExpr.of("is_nil", 1))),
         null,
@@ -1663,7 +1718,8 @@ class GoldenElixirRendererTest {
     return new Function(
         "to_binary",
         true,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("v) when is_atom(v")))),
+        List.of(
+            FunctionHead.of(List.of(VariablePattern.of("v")), IsTypeGuard.of("is_atom", "v"))),
         RemoteCallExpr.of("Atom", "to_string", List.of(Variable.of("v"))),
         null,
         null,
@@ -1675,7 +1731,8 @@ class GoldenElixirRendererTest {
     return new Function(
         "to_binary",
         true,
-        List.of(FunctionHead.of(List.of(OpaquePattern.of("v) when is_integer(v")))),
+        List.of(
+            FunctionHead.of(List.of(VariablePattern.of("v")), IsTypeGuard.of("is_integer", "v"))),
         RemoteCallExpr.of("Integer", "to_string", List.of(Variable.of("v"))),
         null,
         null,
@@ -1751,7 +1808,14 @@ class GoldenElixirRendererTest {
         RemoteCallExpr.of("URI", "parse", List.of(Variable.of("base_url"))),
         List.of(
             Clause.of(
-                OpaquePattern.of("%URI{scheme: scheme, host: host} = uri when is_binary(host)"),
+                AssignPattern.of(
+                    StructPattern.of(
+                        "URI",
+                        List.of(
+                            StructPatternField.of("scheme", VariablePattern.of("scheme")),
+                            StructPatternField.of("host", VariablePattern.of("host")))),
+                    VariablePattern.of("uri")),
+                IsTypeGuard.of("is_binary", "host"),
                 new BlockExpr(
                     List.of(
                         MatchExpr.bind("port_suffix", portSuffixCase),
@@ -1901,7 +1965,11 @@ class GoldenElixirRendererTest {
             new PipeStep(
                 CaseExpr.piped(
                     List.of(
-                        Clause.of(OpaquePattern.of("map when map == %{}"), NilExpr.of()),
+                        Clause.of(
+                            VariablePattern.of("map"),
+                            new ComparisonGuard(
+                                Variable.of("map"), "==", MapExpr.of(List.of()), null),
+                            NilExpr.of()),
                         Clause.of(VariablePattern.of("map"), Variable.of("map")))),
                 List.of(),
                 null)),
