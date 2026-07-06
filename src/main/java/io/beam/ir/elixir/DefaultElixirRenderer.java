@@ -77,6 +77,8 @@ final class DefaultElixirRenderer implements Renderer {
       render(tryExpr, out, indent);
     } else if (expression instanceof RaiseExpr raise) {
       render(raise, out, indent);
+    } else if (expression instanceof BinaryExpr binary) {
+      render(binary, out, indent);
     } else {
       throw new IllegalArgumentException("Unsupported expression: " + expression);
     }
@@ -434,6 +436,54 @@ final class DefaultElixirRenderer implements Renderer {
       out.append(", ");
       render(raise.messageOrNull(), out, indent);
     }
+  }
+
+  private void render(BinaryExpr binary, StringBuilder out, String indent) {
+    List<BinarySegmentExpr> segments = binary.segments();
+    if (segments.isEmpty()) {
+      out.append("<<>>");
+      return;
+    }
+    if (!binaryExceedsPrintWidth(segments, indent)) {
+      out.append("<<");
+      for (int i = 0; i < segments.size(); i++) {
+        if (i > 0) {
+          out.append(", ");
+        }
+        render(segments.get(i), out, indent);
+      }
+      out.append(">>");
+      return;
+    }
+    out.append("<<");
+    for (int i = 0; i < segments.size(); i++) {
+      if (i > 0) {
+        out.append(",\n").append(indent).append(INDENT);
+      }
+      render(segments.get(i), out, indent + INDENT);
+    }
+    out.append(">>");
+  }
+
+  private void render(BinarySegmentExpr segment, StringBuilder out, String indent) {
+    render(segment.value(), out, indent);
+    if (segment.typeOrNull() != null) {
+      out.append("::").append(segment.typeOrNull());
+    }
+  }
+
+  private boolean binaryExceedsPrintWidth(List<BinarySegmentExpr> segments, String indent) {
+    return exceedsPrintWidth(
+        scratch -> {
+          scratch.append("<<");
+          for (int i = 0; i < segments.size(); i++) {
+            if (i > 0) {
+              scratch.append(", ");
+            }
+            render(segments.get(i), scratch, indent);
+          }
+          scratch.append(">>");
+        });
   }
 
   private void render(RemoteCallExpr call, StringBuilder out, String indent) {

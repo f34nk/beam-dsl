@@ -25,4 +25,5 @@ public sealed interface Expression extends Node
         BlockExpr,
         AnonFun,
         TryExpr,
-        RaiseExpr {}
+        RaiseExpr,
+        BinaryExpr {}

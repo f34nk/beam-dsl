@@ -240,4 +240,17 @@ class ElixirRendererTest {
         ElixirRenderer.renderExpression(
             RaiseExpr.parenthesized(Variable.of("ArgumentError"), StringExpr.of("unknown event"))));
   }
+
+  @Test
+  void rendersBinaryExpr() {
+    assertEquals(
+        "<<a::32, b::16, _::4>>",
+        ElixirRenderer.renderExpression(
+            new BinaryExpr(
+                List.of(
+                    new BinarySegmentExpr(Variable.of("a"), "32", null),
+                    new BinarySegmentExpr(Variable.of("b"), "16", null),
+                    new BinarySegmentExpr(Variable.of("_"), "4", null)),
+                null)));
+  }
 }
