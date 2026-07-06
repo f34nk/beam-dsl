@@ -1,0 +1,10 @@
+package io.beam.ir.elixir;
+
+import java.util.List;
+
+public record TupleExpr(List<Expression> elements, SourceSpan source) implements Expression {
+
+  public static TupleExpr of(List<Expression> elements) {
+    return new TupleExpr(elements, null);
+  }
+}
