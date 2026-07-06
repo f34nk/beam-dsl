@@ -1,4 +1,12 @@
 package io.beam.ir.elixir;
 
 public sealed interface Pattern extends Node
-    permits StructPattern, VariablePattern, AtomPattern, WildcardPattern, TuplePattern {}
+    permits AtomPattern,
+        VariablePattern,
+        WildcardPattern,
+        TuplePattern,
+        ListPattern,
+        StringPattern,
+        StructPattern,
+        PinPattern,
+        MapPattern {}

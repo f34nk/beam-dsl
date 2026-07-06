@@ -26,6 +26,40 @@ final class DefaultElixirRenderer implements Renderer {
     return PRINT_WIDTH;
   }
 
+  String renderGuardForTest(Guard guard) {
+    StringBuilder out = new StringBuilder();
+    render(guard, out);
+    return out.toString();
+  }
+
+  private void render(Guard guard, StringBuilder out) {
+    if (guard instanceof IsTypeGuard isTypeGuard) {
+      out.append(isTypeGuard.type()).append('(').append(isTypeGuard.variable()).append(')');
+    } else if (guard instanceof ComparisonGuard comparison) {
+      render(comparison.left(), out, "");
+      out.append(' ').append(comparison.op()).append(' ');
+      render(comparison.right(), out, "");
+    } else if (guard instanceof AndGuard andGuard) {
+      List<Guard> guards = andGuard.guards();
+      for (int i = 0; i < guards.size(); i++) {
+        if (i > 0) {
+          out.append(" and ");
+        }
+        render(guards.get(i), out);
+      }
+    } else if (guard instanceof OrGuard orGuard) {
+      List<Guard> guards = orGuard.guards();
+      for (int i = 0; i < guards.size(); i++) {
+        if (i > 0) {
+          out.append(" or ");
+        }
+        render(guards.get(i), out);
+      }
+    } else {
+      throw new IllegalArgumentException("Unsupported guard: " + guard);
+    }
+  }
+
   private void render(Expression expression, StringBuilder out, String indent) {
     if (expression instanceof AtomExpr atom) {
       out.append(':').append(atom.value());
@@ -645,6 +679,31 @@ final class DefaultElixirRenderer implements Renderer {
           out.append(", ");
         }
         render(tuple.elements().get(i), out);
+      }
+      out.append('}');
+    } else if (pattern instanceof ListPattern list) {
+      out.append('[');
+      for (int i = 0; i < list.elements().size(); i++) {
+        if (i > 0) {
+          out.append(", ");
+        }
+        render(list.elements().get(i), out);
+      }
+      out.append(']');
+    } else if (pattern instanceof StringPattern string) {
+      out.append('"').append(escapeString(string.value())).append('"');
+    } else if (pattern instanceof PinPattern pin) {
+      out.append('^').append(pin.name());
+    } else if (pattern instanceof MapPattern map) {
+      out.append("%{");
+      for (int i = 0; i < map.entries().size(); i++) {
+        if (i > 0) {
+          out.append(", ");
+        }
+        MapPatternEntry entry = map.entries().get(i);
+        render(entry.key(), out, "");
+        out.append(" => ");
+        render(entry.value(), out);
       }
       out.append('}');
     } else {

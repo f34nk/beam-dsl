@@ -253,4 +253,31 @@ class ElixirRendererTest {
                     new BinarySegmentExpr(Variable.of("_"), "4", null)),
                 null)));
   }
+
+  @Test
+  void rendersStringPattern() {
+    assertEquals("\"FOO\"", ElixirRenderer.renderPattern(StringPattern.of("FOO")));
+  }
+
+  @Test
+  void rendersPinPattern() {
+    assertEquals("^config", ElixirRenderer.renderPattern(PinPattern.of("config")));
+  }
+
+  @Test
+  void rendersGuards() {
+    DefaultElixirRenderer renderer = new DefaultElixirRenderer();
+    assertEquals("is_map(map)", renderer.renderGuardForTest(IsTypeGuard.of("is_map", "map")));
+    assertEquals(
+        "is_binary(id) and is_binary(secret)",
+        renderer.renderGuardForTest(
+            AndGuard.of(
+                List.of(
+                    IsTypeGuard.of("is_binary", "id"),
+                    IsTypeGuard.of("is_binary", "secret")))));
+    assertEquals(
+        "map == %{}",
+        renderer.renderGuardForTest(
+            new ComparisonGuard(Variable.of("map"), "==", MapExpr.of(List.of()), null)));
+  }
 }
