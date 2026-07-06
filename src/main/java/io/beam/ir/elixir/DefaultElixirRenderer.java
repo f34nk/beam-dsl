@@ -133,13 +133,27 @@ final class DefaultElixirRenderer implements Renderer {
   }
 
   private void render(ListExpr list, StringBuilder out, String indent) {
-    if (!collectionExceedsPrintWidth(list.elements(), '[', ']')) {
+    if (!shouldUseVerticalList(list)) {
       out.append('[');
       renderCommaSeparated(list.elements(), out, indent);
       out.append(']');
       return;
     }
     renderCollectionVertical(list.elements(), out, indent, '[', ']');
+  }
+
+  private boolean shouldUseVerticalList(ListExpr list) {
+    if (collectionExceedsPrintWidth(list.elements(), '[', ']')) {
+      return true;
+    }
+    return list.elements().size() >= 2
+        && list.elements().stream().anyMatch(this::isCallLikeExpression);
+  }
+
+  private boolean isCallLikeExpression(Expression expression) {
+    return expression instanceof RemoteCallExpr
+        || expression instanceof LocalCallExpr
+        || expression instanceof DotCallExpr;
   }
 
   private void render(MapExpr map, StringBuilder out, String indent) {
@@ -302,13 +316,35 @@ final class DefaultElixirRenderer implements Renderer {
       render(match.value(), out, indent);
     }
     if (match.bodyOrNull() != null) {
-      out.append("\n\n").append(indent);
-      render(match.bodyOrNull(), out, indent);
+      if (indent.isEmpty()) {
+        out.append("\n\n");
+        render(match.bodyOrNull(), out, indent);
+      } else {
+        out.append('\n').append(indent);
+        render(match.bodyOrNull(), out, indent);
+      }
     }
   }
 
   private boolean matchValueExceedsPrintWidth(Expression value) {
+    if (requiresMultilineMatchValue(value)) {
+      return true;
+    }
     return exceedsPrintWidth(scratch -> render(value, scratch, ""));
+  }
+
+  private boolean requiresMultilineMatchValue(Expression value) {
+    if (value instanceof AnonFun fun) {
+      return fun.clauses().size() > 1
+          || fun.clauses().stream().anyMatch(clause -> clause.guardOrNull() != null);
+    }
+    if (value instanceof RemoteCallExpr call) {
+      return call.args().stream().anyMatch(this::requiresMultilineMatchValue);
+    }
+    if (value instanceof LocalCallExpr call) {
+      return call.args().stream().anyMatch(this::requiresMultilineMatchValue);
+    }
+    return false;
   }
 
   private void render(InterpolatedStringExpr string, StringBuilder out, String indent) {
@@ -326,6 +362,10 @@ final class DefaultElixirRenderer implements Renderer {
   }
 
   private void render(CaseExpr caseExpr, StringBuilder out, String indent) {
+    render(caseExpr, out, indent, false);
+  }
+
+  private void render(CaseExpr caseExpr, StringBuilder out, String indent, boolean forceMultilineClauses) {
     out.append("case");
     if (caseExpr.subjectOrNull() != null) {
       out.append(' ');
@@ -333,9 +373,14 @@ final class DefaultElixirRenderer implements Renderer {
     }
     out.append(" do\n");
     List<Clause> clauses = caseExpr.clauses();
-    boolean multilineCase = clauses.stream().anyMatch(c -> usesMultilineCaseBody(c.body()));
+    boolean multilineCase =
+        forceMultilineClauses
+            || clauses.stream().anyMatch(clause -> usesMultilineCaseBody(clause.body()))
+            || clauses.stream().anyMatch(this::clauseUsesExpandedFormat);
     for (int i = 0; i < clauses.size(); i++) {
-      if (i > 0 && usesBlankLineBetweenCaseClauses(clauses.get(i - 1), clauses.get(i))) {
+      if (i > 0
+          && usesBlankLineBetweenCaseClauses(
+              clauses.get(i - 1), clauses.get(i), forceMultilineClauses, multilineCase)) {
         out.append('\n');
       }
       out.append(indent).append(INDENT);
@@ -346,7 +391,7 @@ final class DefaultElixirRenderer implements Renderer {
       }
       out.append(" ->");
       Expression body = clauses.get(i).body();
-      if (multilineCase || usesMultilineCaseBody(body)) {
+      if (multilineCase || usesMultilineCaseBody(body) || clauseUsesExpandedFormat(clauses.get(i))) {
         out.append('\n');
         out.append(indent).append(INDENT).append(INDENT);
         render(body, out, indent + INDENT + INDENT);
@@ -361,17 +406,51 @@ final class DefaultElixirRenderer implements Renderer {
     out.append('\n').append(indent).append("end");
   }
 
-  private boolean usesBlankLineBetweenCaseClauses(Clause previous, Clause next) {
+  private boolean clauseUsesExpandedFormat(Clause clause) {
+    return patternContainsPin(clause.pattern());
+  }
+
+  private boolean patternContainsPin(Pattern pattern) {
+    if (pattern instanceof PinPattern) {
+      return true;
+    }
+    if (pattern instanceof TuplePattern tuple) {
+      return tuple.elements().stream().anyMatch(this::patternContainsPin);
+    }
+    if (pattern instanceof AssignPattern assign) {
+      return patternContainsPin(assign.left()) || patternContainsPin(assign.right());
+    }
+    return false;
+  }
+
+  private boolean usesBlankLineBetweenCaseClauses(
+      Clause previous, Clause next, boolean forceMultilineClauses, boolean multilineCase) {
+    if (forceMultilineClauses || multilineCase) {
+      return true;
+    }
     return usesMultilineCaseBody(previous.body()) || usesMultilineCaseBody(next.body());
   }
 
   private boolean usesMultilineCaseBody(Expression body) {
-    return body instanceof CaseExpr
+    if (body instanceof CaseExpr
         || body instanceof BlockExpr
         || body instanceof MatchExpr
         || body instanceof TryExpr
         || body instanceof AnonFun
-        || body instanceof IfExpr ifExpr && !ifExpr.inline();
+        || body instanceof IfExpr ifExpr && !ifExpr.inline()) {
+      return true;
+    }
+    if (body instanceof LocalCallExpr call && callHasVerticalListArg(call.args())) {
+      return true;
+    }
+    if (body instanceof RemoteCallExpr call && callHasVerticalListArg(call.args())) {
+      return true;
+    }
+    return exceedsPrintWidth(scratch -> render(body, scratch, ""));
+  }
+
+  private boolean callHasVerticalListArg(List<Expression> args) {
+    return args.stream().anyMatch(arg -> arg instanceof ListExpr list && shouldUseVerticalList(list));
   }
 
   private void render(IfExpr ifExpr, StringBuilder out, String indent) {
@@ -406,12 +485,8 @@ final class DefaultElixirRenderer implements Renderer {
         out.append('\n');
         Expression previous = block.statements().get(i - 1);
         Expression current = block.statements().get(i);
-        if (previous instanceof MatchExpr match) {
-          boolean multiline =
-              match.value() instanceof CaseExpr || matchValueExceedsPrintWidth(match.value());
-          if (multiline || !(current instanceof MatchExpr)) {
-            out.append('\n');
-          }
+        if (needsBlockBlankLineAfter(previous, current)) {
+          out.append('\n');
         }
         if (!indent.isEmpty()) {
           out.append(indent);
@@ -421,17 +496,36 @@ final class DefaultElixirRenderer implements Renderer {
     }
   }
 
+  private boolean needsBlockBlankLineAfter(Expression previous, Expression current) {
+    if (previous instanceof MatchExpr match) {
+      if (match.value() instanceof CaseExpr || matchValueExceedsPrintWidth(match.value())) {
+        return true;
+      }
+    }
+    return current instanceof IfExpr
+        || current instanceof CaseExpr
+        || current instanceof TryExpr
+        || current instanceof StructExpr;
+  }
+
   private void render(AnonFun fun, StringBuilder out, String indent) {
     List<AnonFunClause> clauses = fun.clauses();
-    if (clauses.size() == 1
-        && isCompactAnonFun(clauses.get(0))
-        && clauses.get(0).guardOrNull() == null) {
+    if (clauses.size() == 1 && clauses.get(0).guardOrNull() == null) {
       AnonFunClause clause = clauses.get(0);
+      if (isSimpleAnonFunBody(clause.body())) {
+        out.append("fn ");
+        renderAnonFunParams(clause.params(), out);
+        out.append(" -> ");
+        render(clause.body(), out, indent);
+        out.append(" end");
+        return;
+      }
       out.append("fn ");
       renderAnonFunParams(clause.params(), out);
-      out.append(" -> ");
-      render(clause.body(), out, indent);
-      out.append(" end");
+      out.append(" ->\n");
+      out.append(indent).append(INDENT);
+      render(clause.body(), out, indent + INDENT);
+      out.append('\n').append(indent).append("end");
       return;
     }
     out.append("fn\n");
@@ -451,8 +545,23 @@ final class DefaultElixirRenderer implements Renderer {
     out.append('\n').append(indent).append("end");
   }
 
-  private boolean isCompactAnonFun(AnonFunClause clause) {
-    return !usesMultilineCaseBody(clause.body());
+  private boolean isSimpleAnonFunBody(Expression body) {
+    if (body instanceof TupleExpr tuple) {
+      return tuple.elements().stream().noneMatch(this::expressionNeedsExpandedAnonFunBody)
+          && !exceedsPrintWidth(scratch -> render(body, scratch, ""));
+    }
+    return !usesMultilineCaseBody(body)
+        && !exceedsPrintWidth(scratch -> render(body, scratch, ""));
+  }
+
+  private boolean expressionNeedsExpandedAnonFunBody(Expression expression) {
+    if (expression instanceof RemoteCallExpr call) {
+      return call.args().size() > 1;
+    }
+    if (expression instanceof LocalCallExpr call) {
+      return call.args().size() > 1;
+    }
+    return false;
   }
 
   private void renderAnonFunParams(List<Pattern> params, StringBuilder out) {
@@ -558,7 +667,16 @@ final class DefaultElixirRenderer implements Renderer {
   }
 
   private void render(RemoteCallExpr call, StringBuilder out, String indent) {
-    if (!callExceedsPrintWidth(call.module(), call.function(), call.args(), null)) {
+    if (renderCallWithTrailingAnonFun(call.module() + "." + call.function(), call.args(), out, indent)) {
+      return;
+    }
+    if (call.args().size() == 1 && call.args().get(0) instanceof AnonFun fun) {
+      out.append(call.module()).append('.').append(call.function()).append('(');
+      render(fun, out, indent);
+      out.append(')');
+      return;
+    }
+    if (!shouldUseVerticalCall(call.module(), call.function(), call.args(), null)) {
       out.append(call.module()).append('.').append(call.function()).append('(');
       renderCommaSeparated(call.args(), out, indent);
       out.append(')');
@@ -568,13 +686,48 @@ final class DefaultElixirRenderer implements Renderer {
   }
 
   private void render(LocalCallExpr call, StringBuilder out, String indent) {
-    if (!callExceedsPrintWidth(null, call.function(), call.args(), null)) {
+    if (renderCallWithTrailingAnonFun(call.function(), call.args(), out, indent)) {
+      return;
+    }
+    if (call.args().size() == 1 && call.args().get(0) instanceof AnonFun fun) {
+      out.append(call.function()).append('(');
+      render(fun, out, indent);
+      out.append(')');
+      return;
+    }
+    if (!shouldUseVerticalCall(null, call.function(), call.args(), null)) {
       out.append(call.function()).append('(');
       renderCommaSeparated(call.args(), out, indent);
       out.append(')');
       return;
     }
     renderCallVertical(call.function(), call.args(), out, indent, null);
+  }
+
+  private boolean renderCallWithTrailingAnonFun(
+      String name, List<Expression> args, StringBuilder out, String indent) {
+    if (args.size() == 2
+        && args.get(0) instanceof Variable
+        && args.get(1) instanceof AnonFun fun) {
+      out.append(name).append('(');
+      render(args.get(0), out, indent);
+      out.append(", ");
+      render(fun, out, indent);
+      out.append(')');
+      return true;
+    }
+    return false;
+  }
+
+  private boolean shouldUseVerticalCall(
+      String module, String function, List<Expression> args, Expression receiverOrNull) {
+    if (callExceedsPrintWidth(module, function, args, receiverOrNull)) {
+      return true;
+    }
+    if (args.size() >= 2 && args.stream().allMatch(this::isCallLikeExpression)) {
+      return true;
+    }
+    return args.stream().anyMatch(this::requiresMultilineMatchValue);
   }
 
   private void render(DotCallExpr call, StringBuilder out, String indent) {
@@ -862,9 +1015,11 @@ final class DefaultElixirRenderer implements Renderer {
   private void renderFunctionClause(
       Function function, FunctionHead head, StringBuilder out, String indent) {
     out.append(indent).append(function.private_() ? "defp " : "def ").append(function.name());
-    out.append('(');
-    renderFunctionParams(head.params(), out);
-    out.append(')');
+    if (!head.params().isEmpty()) {
+      out.append('(');
+      renderFunctionParams(head.params(), out);
+      out.append(')');
+    }
     if (head.guardOrNull() != null) {
       out.append(" when ");
       render(head.guardOrNull(), out);

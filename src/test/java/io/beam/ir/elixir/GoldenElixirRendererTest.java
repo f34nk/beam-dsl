@@ -300,10 +300,10 @@ class GoldenElixirRendererTest {
             syntaxModuleFn38(),
             syntaxModuleFn70(),
             syntaxModuleFn39(),
-            syntaxModuleFn40(),
             syntaxModuleFn71(),
             syntaxModuleFn72(),
             syntaxModuleFn73(),
+            syntaxModuleFn40(),
             syntaxModuleFn74()));
   }
 
@@ -1757,11 +1757,13 @@ class GoldenElixirRendererTest {
         List.of(
             Clause.of(
                 AssignPattern.of(
-                    "ok", TuplePattern.of(List.of(AtomPattern.of("ok"), WildcardPattern.of()))),
+                    TuplePattern.of(List.of(AtomPattern.of("ok"), WildcardPattern.of())),
+                    VariablePattern.of("ok")),
                 Variable.of("ok")),
             Clause.of(
                 AssignPattern.of(
-                    "err", TuplePattern.of(List.of(AtomPattern.of("error"), WildcardPattern.of()))),
+                    TuplePattern.of(List.of(AtomPattern.of("error"), WildcardPattern.of())),
+                    VariablePattern.of("err")),
                 new IfExpr(
                     new InfixExpr(
                         LocalCallExpr.of("retryable?", List.of(Variable.of("err"))),
