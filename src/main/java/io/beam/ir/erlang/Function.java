@@ -3,11 +3,7 @@ package io.beam.ir.erlang;
 import java.util.List;
 
 public record Function(
-    String name,
-    List<FunctionClause> clauses,
-    Spec spec,
-    FunctionDoc doc,
-    SourceSpan source)
+    String name, List<FunctionClause> clauses, Spec spec, FunctionDoc doc, SourceSpan source)
     implements Node {
 
   public static Function of(String name, List<FunctionClause> clauses) {
