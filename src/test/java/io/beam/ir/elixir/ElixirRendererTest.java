@@ -389,4 +389,30 @@ class ElixirRendererTest {
                 List.of(),
                 null)));
   }
+
+  @Test
+  void rendersTypesModule() {
+    assertEquals(
+        """
+        defmodule GetNameOutput do
+          @moduledoc "structure GetNameOutput"
+
+          @type t :: %__MODULE__{
+                  name: HttpServiceClient.name() | nil
+                }
+
+          defstruct [:name]
+        end
+        """,
+        ElixirRenderer.render(
+            new TypesModule(
+                "GetNameOutput",
+                Moduledoc.of("structure GetNameOutput"),
+                new TypeDef(
+                    "t",
+                    "%__MODULE__{\n          name: HttpServiceClient.name() | nil\n        }",
+                    null),
+                List.of(DefstructField.field("name")),
+                null)));
+  }
 }

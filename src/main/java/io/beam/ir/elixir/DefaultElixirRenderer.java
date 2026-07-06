@@ -857,9 +857,6 @@ final class DefaultElixirRenderer implements Renderer {
       render(alias, out, INDENT);
       out.append('\n');
     }
-    if (!module.moduleAttributes().isEmpty() && (!module.aliases().isEmpty() || module.moduledocOrNull() != null)) {
-      // module attributes follow aliases
-    }
     for (String attribute : module.moduleAttributes()) {
       out.append(INDENT).append(attribute).append('\n');
     }
@@ -911,7 +908,54 @@ final class DefaultElixirRenderer implements Renderer {
 
   @Override
   public String render(TypesModule typesModule) {
-    throw new UnsupportedOperationException("TypesModule rendering not implemented");
+    if (typesModule.verbatimOrNull() != null) {
+      return ensureTrailingNewline(typesModule.verbatimOrNull());
+    }
+    StringBuilder out = new StringBuilder();
+    out.append("defmodule ").append(typesModule.name()).append(" do\n");
+    if (typesModule.moduledocOrNull() != null) {
+      out.append(INDENT)
+          .append("@moduledoc ")
+          .append(formatModuledoc(typesModule.moduledocOrNull().text()))
+          .append("\n\n");
+    }
+    render(typesModule.typeDef(), out, INDENT);
+    out.append("\n\n");
+    renderDefstruct(typesModule.defstructFields(), out, INDENT);
+    out.append("\nend\n");
+    return out.toString().stripTrailing() + "\n";
+  }
+
+  private void render(TypeDef typeDef, StringBuilder out, String indent) {
+    String body = typeDef.body();
+    if (!body.contains("\n")) {
+      out.append(indent).append("@type ").append(typeDef.name()).append(" :: ").append(body);
+      return;
+    }
+    int firstNewline = body.indexOf('\n');
+    out.append(indent)
+        .append("@type ")
+        .append(typeDef.name())
+        .append(" :: ")
+        .append(body, 0, firstNewline)
+        .append('\n');
+    out.append(body.substring(firstNewline + 1));
+  }
+
+  private void renderDefstruct(List<DefstructField> fields, StringBuilder out, String indent) {
+    out.append(indent).append("defstruct [");
+    for (int i = 0; i < fields.size(); i++) {
+      if (i > 0) {
+        out.append(", ");
+      }
+      DefstructField field = fields.get(i);
+      if (field.nameOrNil() != null) {
+        out.append(':').append(field.nameOrNil());
+      } else {
+        out.append("nil");
+      }
+    }
+    out.append(']');
   }
 
   @Override

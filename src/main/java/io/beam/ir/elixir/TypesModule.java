@@ -1,3 +1,17 @@
 package io.beam.ir.elixir;
 
-public record TypesModule(SourceSpan source) implements Node {}
+import java.util.List;
+
+public record TypesModule(
+    String name,
+    Moduledoc moduledocOrNull,
+    TypeDef typeDef,
+    List<DefstructField> defstructFields,
+    String verbatimOrNull)
+    implements Node {
+
+  @Override
+  public SourceSpan source() {
+    return null;
+  }
+}
