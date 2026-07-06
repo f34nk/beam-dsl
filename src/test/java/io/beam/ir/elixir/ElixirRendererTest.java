@@ -346,4 +346,47 @@ class ElixirRendererTest {
                 null,
                 null)));
   }
+
+  @Test
+  void rendersModule() {
+    Function encode =
+        new Function(
+            "encode_event_stream",
+            false,
+            List.of(
+                FunctionHead.of(
+                    List.of(VariablePattern.of("events")),
+                    IsTypeGuard.of("is_list", "events"))),
+            LocalCallExpr.of(
+                "Enum.map",
+                List.of(
+                    Variable.of("events"),
+                    CaptureExpr.of("encode_event_stream_event", 1))),
+            null,
+            FunctionDoc.of("Encodes a list of event stream events into framed binaries."),
+            false,
+            null,
+            null);
+    assertEquals(
+        """
+        defmodule EventStreamRestJsonServiceEventStream do
+          @moduledoc "Generated helpers"
+          alias EventStreamRestJsonServiceTypes
+
+          @doc "Encodes a list of event stream events into framed binaries."
+          def encode_event_stream(events) when is_list(events) do
+            Enum.map(events, &encode_event_stream_event/1)
+          end
+        end
+        """,
+        ElixirRenderer.render(
+            new Module(
+                "EventStreamRestJsonServiceEventStream",
+                Moduledoc.of("Generated helpers"),
+                List.of(),
+                List.of(Alias.of("EventStreamRestJsonServiceTypes")),
+                List.of(encode),
+                List.of(),
+                null)));
+  }
 }

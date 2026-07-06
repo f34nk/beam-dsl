@@ -838,7 +838,75 @@ final class DefaultElixirRenderer implements Renderer {
 
   @Override
   public String render(Module module) {
-    throw new UnsupportedOperationException("Module rendering not implemented");
+    if (module.verbatimOrNull() != null) {
+      return ensureTrailingNewline(module.verbatimOrNull());
+    }
+    StringBuilder out = new StringBuilder();
+    out.append("defmodule ").append(module.name()).append(" do\n");
+    if (module.moduledocOrNull() != null) {
+      out.append(INDENT)
+          .append("@moduledoc ")
+          .append(formatModuledoc(module.moduledocOrNull().text()))
+          .append('\n');
+    }
+    for (UseDirective use : module.uses()) {
+      render(use, out, INDENT);
+      out.append('\n');
+    }
+    for (Alias alias : module.aliases()) {
+      render(alias, out, INDENT);
+      out.append('\n');
+    }
+    if (!module.moduleAttributes().isEmpty() && (!module.aliases().isEmpty() || module.moduledocOrNull() != null)) {
+      // module attributes follow aliases
+    }
+    for (String attribute : module.moduleAttributes()) {
+      out.append(INDENT).append(attribute).append('\n');
+    }
+    if (!module.functions().isEmpty()
+        && (!module.aliases().isEmpty()
+            || module.moduledocOrNull() != null
+            || !module.uses().isEmpty()
+            || !module.moduleAttributes().isEmpty())) {
+      out.append('\n');
+    }
+    for (int i = 0; i < module.functions().size(); i++) {
+      if (i > 0) {
+        out.append('\n');
+      }
+      render(module.functions().get(i), out, INDENT);
+    }
+    out.append('\n').append("end\n");
+    return out.toString().stripTrailing() + "\n";
+  }
+
+  private static String ensureTrailingNewline(String text) {
+    return text.endsWith("\n") ? text : text + "\n";
+  }
+
+  private static String formatModuledoc(String text) {
+    return "\"" + text.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+  }
+
+  private void render(UseDirective use, StringBuilder out, String indent) {
+    out.append(indent).append("use ").append(use.module());
+    for (int i = 0; i < use.options().size(); i++) {
+      if (i == 0) {
+        out.append(", ");
+      } else {
+        out.append(", ");
+      }
+      UseOption option = use.options().get(i);
+      out.append(option.key()).append(": ");
+      render(option.value(), out, indent);
+    }
+  }
+
+  private void render(Alias alias, StringBuilder out, String indent) {
+    out.append(indent).append("alias ").append(alias.module());
+    if (alias.asOrNull() != null) {
+      out.append(", as: ").append(alias.asOrNull());
+    }
   }
 
   @Override
