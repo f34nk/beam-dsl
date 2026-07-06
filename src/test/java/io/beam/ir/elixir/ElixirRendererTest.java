@@ -435,8 +435,7 @@ class ElixirRendererTest {
                             List.of(
                                 Clause.of(
                                     TuplePattern.of(
-                                        List.of(
-                                            AtomPattern.of("ok"), VariablePattern.of("value"))),
+                                        List.of(AtomPattern.of("ok"), VariablePattern.of("value"))),
                                     Variable.of("value")),
                                 Clause.of(AtomPattern.of("error"), AtomExpr.of("default"))),
                             null)),
@@ -555,8 +554,7 @@ class ElixirRendererTest {
                                         Variable.of("val")),
                                     Clause.of(
                                         TuplePattern.of(
-                                            List.of(
-                                                AtomPattern.of("error"), WildcardPattern.of())),
+                                            List.of(AtomPattern.of("error"), WildcardPattern.of())),
                                         MapExpr.of(List.of()))),
                                 null))),
                     null))));
@@ -573,8 +571,7 @@ class ElixirRendererTest {
                 List.of(
                     MatchExpr.bind(
                         TuplePattern.of(
-                            List.of(
-                                VariablePattern.of("scheme"), VariablePattern.of("authority"))),
+                            List.of(VariablePattern.of("scheme"), VariablePattern.of("authority"))),
                         LocalCallExpr.of("split_base_url", List.of(Variable.of("base_url")))),
                     MatchExpr.bind(
                         "req_url",
@@ -606,8 +603,7 @@ class ElixirRendererTest {
                     null),
                 new BlockExpr(
                     List.of(
-                        RemoteCallExpr.of(
-                            "Process", "sleep", List.of(Variable.of("base"))),
+                        RemoteCallExpr.of("Process", "sleep", List.of(Variable.of("base"))),
                         LocalCallExpr.of(
                             "with_retry",
                             List.of(
@@ -615,8 +611,7 @@ class ElixirRendererTest {
                                 new InfixExpr(
                                     Variable.of("attempts"), "-", IntegerExpr.of(1), null),
                                 Variable.of("base"),
-                                new InfixExpr(
-                                    Variable.of("n"), "+", IntegerExpr.of(1), null)))),
+                                new InfixExpr(Variable.of("n"), "+", IntegerExpr.of(1), null)))),
                     null),
                 Variable.of("err"),
                 false,
