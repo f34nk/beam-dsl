@@ -630,8 +630,7 @@ class GoldenElixirRendererTest {
                     ListPattern.of(
                         List.of(
                             TuplePattern.of(
-                                List.of(
-                                    VariablePattern.of("k"), VariablePattern.of("_v"))))),
+                                List.of(VariablePattern.of("k"), VariablePattern.of("_v"))))),
                     TupleExpr.of(List.of(AtomExpr.of("unknown"), Variable.of("k")))),
                 Clause.of(WildcardPattern.of(), NilExpr.of())),
             null),
@@ -657,7 +656,10 @@ class GoldenElixirRendererTest {
     return new Function(
         "encode_union",
         false,
-        List.of(FunctionHead.of(List.of(TuplePattern.of(List.of(AtomPattern.of("left"), VariablePattern.of("v")))))),
+        List.of(
+            FunctionHead.of(
+                List.of(
+                    TuplePattern.of(List.of(AtomPattern.of("left"), VariablePattern.of("v")))))),
         MapExpr.of(List.of(MapEntry.stringKey("left", Variable.of("v")))),
         null,
         null,
@@ -669,7 +671,10 @@ class GoldenElixirRendererTest {
     return new Function(
         "encode_union",
         false,
-        List.of(FunctionHead.of(List.of(TuplePattern.of(List.of(AtomPattern.of("right"), VariablePattern.of("v")))))),
+        List.of(
+            FunctionHead.of(
+                List.of(
+                    TuplePattern.of(List.of(AtomPattern.of("right"), VariablePattern.of("v")))))),
         MapExpr.of(List.of(MapEntry.stringKey("right", Variable.of("v")))),
         null,
         null,
@@ -724,9 +729,7 @@ class GoldenElixirRendererTest {
                 LocalCallExpr.of(
                     "dispatch",
                     List.of(
-                        Variable.of("handler"),
-                        Variable.of("config"),
-                        Variable.of("request")))),
+                        Variable.of("handler"), Variable.of("config"), Variable.of("request")))),
             null),
         null,
         null,
@@ -749,8 +752,7 @@ class GoldenElixirRendererTest {
                             StructPatternField.of("method", VariablePattern.of("method")),
                             StructPatternField.of("path", VariablePattern.of("path"))))),
                 IsTypeGuard.of("is_atom", "handler"))),
-        TupleExpr.of(
-            List.of(Variable.of("handler"), Variable.of("method"), Variable.of("path"))),
+        TupleExpr.of(List.of(Variable.of("handler"), Variable.of("method"), Variable.of("path"))),
         null,
         null,
         false,
@@ -894,9 +896,7 @@ class GoldenElixirRendererTest {
                         "Map",
                         "get",
                         List.of(
-                            Variable.of("opts"),
-                            AtomExpr.of("max_attempts"),
-                            IntegerExpr.of(3)))),
+                            Variable.of("opts"), AtomExpr.of("max_attempts"), IntegerExpr.of(3)))),
                 MatchExpr.bind(
                     "base",
                     RemoteCallExpr.of(
@@ -942,9 +942,7 @@ class GoldenElixirRendererTest {
     return new Function(
         "retryable?",
         true,
-        List.of(
-            FunctionHead.of(
-                List.of(OpaquePattern.of("{:error, %TaggedError{}}")))),
+        List.of(FunctionHead.of(List.of(OpaquePattern.of("{:error, %TaggedError{}}")))),
         Variable.of("true"),
         null,
         null,
@@ -993,7 +991,9 @@ class GoldenElixirRendererTest {
             RemoteCallExpr.of("Map", "get", List.of(MapExpr.of(List.of()), Variable.of("key"))),
             List.of(
                 Clause.of(NilPattern.of(), AtomExpr.of("error")),
-                Clause.of(VariablePattern.of("v"), TupleExpr.of(List.of(AtomExpr.of("ok"), Variable.of("v"))))),
+                Clause.of(
+                    VariablePattern.of("v"),
+                    TupleExpr.of(List.of(AtomExpr.of("ok"), Variable.of("v"))))),
             null),
         null,
         null,
@@ -1024,8 +1024,7 @@ class GoldenElixirRendererTest {
             Variable.of("h"),
             List.of(
                 Clause.of(
-                    NilPattern.of(),
-                    LocalCallExpr.of("coalesce", List.of(Variable.of("rest")))),
+                    NilPattern.of(), LocalCallExpr.of("coalesce", List.of(Variable.of("rest")))),
                 Clause.of(
                     StringPattern.of(""),
                     LocalCallExpr.of("coalesce", List.of(Variable.of("rest")))),
@@ -1104,8 +1103,7 @@ class GoldenElixirRendererTest {
         List.of(
             FunctionHead.of(
                 List.of(VariablePattern.of("key"), OpaquePattern.of("value) when is_map(value")))),
-        ListExpr.of(
-            List.of(TupleExpr.of(List.of(Variable.of("key"), Variable.of("value"))))),
+        ListExpr.of(List.of(TupleExpr.of(List.of(Variable.of("key"), Variable.of("value"))))),
         null,
         null,
         false,
@@ -1133,11 +1131,12 @@ class GoldenElixirRendererTest {
                 List.of(VariablePattern.of("headers"), VariablePattern.of("expected")))),
         new CaseExpr(
             RemoteCallExpr.of(
-                "List", "keyfind", List.of(Variable.of("headers"), StringExpr.of("content-type"), IntegerExpr.of(0))),
+                "List",
+                "keyfind",
+                List.of(Variable.of("headers"), StringExpr.of("content-type"), IntegerExpr.of(0))),
             List.of(
                 Clause.of(
-                    TuplePattern.of(
-                        List.of(WildcardPattern.of(), PinPattern.of("expected"))),
+                    TuplePattern.of(List.of(WildcardPattern.of(), PinPattern.of("expected"))),
                     Variable.of("true")),
                 Clause.of(
                     OpaquePattern.of("{_, ct} when is_binary(ct)"),
@@ -1178,7 +1177,8 @@ class GoldenElixirRendererTest {
         "update_request",
         true,
         List.of(FunctionHead.of(List.of(VariablePattern.of("req"), VariablePattern.of("host")))),
-        StructExpr.update(Variable.of("req"), "Request", List.of(StructField.of("host", Variable.of("host")))),
+        StructExpr.update(
+            Variable.of("req"), "Request", List.of(StructField.of("host", Variable.of("host")))),
         null,
         null,
         true,
@@ -1208,7 +1208,8 @@ class GoldenElixirRendererTest {
                             Variable.of("@handlers_key"),
                             MapExpr.of(List.of())))),
                 new CaseExpr(
-                    RemoteCallExpr.of("Map", "get", List.of(Variable.of("handlers"), Variable.of("fun"))),
+                    RemoteCallExpr.of(
+                        "Map", "get", List.of(Variable.of("handlers"), Variable.of("fun"))),
                     List.of(
                         Clause.of(
                             OpaquePattern.of("handler when is_function(handler, 3)"),
@@ -1220,7 +1221,8 @@ class GoldenElixirRendererTest {
                                     Variable.of("meta")))),
                         Clause.of(
                             WildcardPattern.of(),
-                            TupleExpr.of(List.of(AtomExpr.of("error"), AtomExpr.of("not_implemented"))))),
+                            TupleExpr.of(
+                                List.of(AtomExpr.of("error"), AtomExpr.of("not_implemented"))))),
                     null)),
             null),
         null,
@@ -1255,16 +1257,13 @@ class GoldenElixirRendererTest {
                     List.of(
                         AnonFunClause.of(
                             List.of(
-                                TuplePattern.of(
-                                    List.of(VariablePattern.of("k"), NilPattern.of()))),
+                                TuplePattern.of(List.of(VariablePattern.of("k"), NilPattern.of()))),
                             TupleExpr.of(List.of(Variable.of("k"), NilExpr.of()))),
                         AnonFunClause.of(
                             List.of(
                                 TuplePattern.of(
-                                    List.of(
-                                        VariablePattern.of("k"), VariablePattern.of("v")))),
-                            TupleExpr.of(
-                                List.of(Variable.of("k"), Variable.of("v"))))),
+                                    List.of(VariablePattern.of("k"), VariablePattern.of("v")))),
+                            TupleExpr.of(List.of(Variable.of("k"), Variable.of("v"))))),
                     null))),
         null,
         null,
@@ -1304,9 +1303,7 @@ class GoldenElixirRendererTest {
         new CaseExpr(
             RemoteCallExpr.of("Jason", "decode", List.of(Variable.of("body"))),
             List.of(
-                Clause.of(
-                    OpaquePattern.of("{:ok, map} when is_map(map)"),
-                    Variable.of("map")),
+                Clause.of(OpaquePattern.of("{:ok, map} when is_map(map)"), Variable.of("map")),
                 Clause.of(WildcardPattern.of(), MapExpr.of(List.of()))),
             null),
         null,
@@ -1351,8 +1348,7 @@ class GoldenElixirRendererTest {
         true,
         List.of(FunctionHead.of(List.of(VariablePattern.of("config")))),
         new CaseExpr(
-            RemoteCallExpr.of(
-                "Map", "get", List.of(Variable.of("config"), AtomExpr.of("region"))),
+            RemoteCallExpr.of("Map", "get", List.of(Variable.of("config"), AtomExpr.of("region"))),
             List.of(
                 Clause.of(NilPattern.of(), MapExpr.of(List.of())),
                 Clause.of(
@@ -1376,16 +1372,11 @@ class GoldenElixirRendererTest {
             List.of(
                 LocalCallExpr.of(
                     "optional_param",
-                    List.of(
-                        Variable.of("config"),
-                        AtomExpr.of("region"),
-                        StringExpr.of("Region"))),
+                    List.of(Variable.of("config"), AtomExpr.of("region"), StringExpr.of("Region"))),
                 LocalCallExpr.of(
                     "optional_param",
                     List.of(
-                        Variable.of("config"),
-                        AtomExpr.of("bucket"),
-                        StringExpr.of("Bucket"))))),
+                        Variable.of("config"), AtomExpr.of("bucket"), StringExpr.of("Bucket"))))),
         null,
         null,
         false,
@@ -1408,7 +1399,8 @@ class GoldenElixirRendererTest {
                 Clause.of(NilPattern.of(), MapExpr.of(List.of())),
                 Clause.of(
                     VariablePattern.of("value"),
-                    MapExpr.of(List.of(MapEntry.pair(Variable.of("param_key"), Variable.of("value")))))),
+                    MapExpr.of(
+                        List.of(MapEntry.pair(Variable.of("param_key"), Variable.of("value")))))),
             null),
         null,
         null,
@@ -1445,8 +1437,7 @@ class GoldenElixirRendererTest {
                         AnonFunClause.of(
                             List.of(
                                 TuplePattern.of(
-                                    List.of(
-                                        VariablePattern.of("h"), VariablePattern.of("v")))),
+                                    List.of(VariablePattern.of("h"), VariablePattern.of("v")))),
                             TupleExpr.of(
                                 List.of(
                                     concat(Variable.of("prefix"), Variable.of("h")),
@@ -1562,8 +1553,7 @@ class GoldenElixirRendererTest {
                         List.of(
                             Clause.of(
                                 TuplePattern.of(
-                                    List.of(
-                                        AtomPattern.of("ok"), VariablePattern.of("value"))),
+                                    List.of(AtomPattern.of("ok"), VariablePattern.of("value"))),
                                 Variable.of("value")),
                             Clause.of(AtomPattern.of("error"), AtomExpr.of("default"))),
                         null)),
@@ -1740,13 +1730,11 @@ class GoldenElixirRendererTest {
         List.of(
             Clause.of(
                 AssignPattern.of(
-                    "ok",
-                    TuplePattern.of(List.of(AtomPattern.of("ok"), WildcardPattern.of()))),
+                    "ok", TuplePattern.of(List.of(AtomPattern.of("ok"), WildcardPattern.of()))),
                 Variable.of("ok")),
             Clause.of(
                 AssignPattern.of(
-                    "err",
-                    TuplePattern.of(List.of(AtomPattern.of("error"), WildcardPattern.of()))),
+                    "err", TuplePattern.of(List.of(AtomPattern.of("error"), WildcardPattern.of()))),
                 new IfExpr(
                     new InfixExpr(
                         LocalCallExpr.of("retryable?", List.of(Variable.of("err"))),
@@ -1758,8 +1746,7 @@ class GoldenElixirRendererTest {
                             RemoteCallExpr.of(
                                 "Process",
                                 "sleep",
-                                List.of(
-                                    LocalCallExpr.of("trunc", List.of(backoff)))),
+                                List.of(LocalCallExpr.of("trunc", List.of(backoff)))),
                             LocalCallExpr.of(
                                 "with_retry",
                                 List.of(
@@ -1820,8 +1807,7 @@ class GoldenElixirRendererTest {
     return new PipeExpr(
         Variable.of("map"),
         List.of(
-            new PipeStep(
-                RemoteCallExpr.of("Map", "to_list", List.of()), List.of(), null),
+            new PipeStep(RemoteCallExpr.of("Map", "to_list", List.of()), List.of(), null),
             new PipeStep(
                 RemoteCallExpr.of("Enum", "with_index", List.of(IntegerExpr.of(1))),
                 List.of(),
@@ -1871,8 +1857,7 @@ class GoldenElixirRendererTest {
                                     List.of(
                                         TuplePattern.of(
                                             List.of(
-                                                VariablePattern.of("name"),
-                                                WildcardPattern.of()))),
+                                                VariablePattern.of("name"), WildcardPattern.of()))),
                                     new InfixExpr(
                                         LocalCallExpr.of("byte_size", List.of(Variable.of("name"))),
                                         ">",
@@ -1893,8 +1878,7 @@ class GoldenElixirRendererTest {
                                     List.of(
                                         TuplePattern.of(
                                             List.of(
-                                                VariablePattern.of("name"),
-                                                WildcardPattern.of()))),
+                                                VariablePattern.of("name"), WildcardPattern.of()))),
                                     new InfixExpr(
                                         LocalCallExpr.of(
                                             "binary_part",
@@ -1902,8 +1886,7 @@ class GoldenElixirRendererTest {
                                                 Variable.of("name"),
                                                 IntegerExpr.of(0),
                                                 LocalCallExpr.of(
-                                                    "byte_size",
-                                                    List.of(Variable.of("prefix"))))),
+                                                    "byte_size", List.of(Variable.of("prefix"))))),
                                         "==",
                                         Variable.of("prefix"),
                                         null))),
@@ -1971,8 +1954,7 @@ class GoldenElixirRendererTest {
                                     RemoteCallExpr.of(
                                         "Map",
                                         "get",
-                                        List.of(
-                                            Variable.of("config"), AtomExpr.of("endpoint"))),
+                                        List.of(Variable.of("config"), AtomExpr.of("endpoint"))),
                                     LocalCallExpr.of(
                                         "resolve_host", List.of(Variable.of("config")))))))),
                 Clause.of(VariablePattern.of("given_url"), Variable.of("given_url"))),
@@ -2000,7 +1982,9 @@ class GoldenElixirRendererTest {
             MatchExpr.bind(
                 "req_url",
                 concat(
-                    concat(concat(Variable.of("scheme"), Variable.of("authority")), Variable.of("path")),
+                    concat(
+                        concat(Variable.of("scheme"), Variable.of("authority")),
+                        Variable.of("path")),
                     Variable.of("query_str"))),
             StructExpr.of(
                 "Response",
