@@ -1,8 +1,8 @@
 package io.beam.ir.elixir;
 
-public record IntegerPattern(long value, SourceSpan source) implements Pattern {
+public record IntegerPattern(long value) implements Pattern {
 
   public static IntegerPattern of(long value) {
-    return new IntegerPattern(value, null);
+    return new IntegerPattern(value);
   }
 }

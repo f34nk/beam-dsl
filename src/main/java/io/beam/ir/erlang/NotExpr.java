@@ -1,8 +1,8 @@
 package io.beam.ir.erlang;
 
-public record NotExpr(Expression expression, SourceSpan source) implements Expression {
+public record NotExpr(Expression expression) implements Expression {
 
   public static NotExpr of(Expression expression) {
-    return new NotExpr(expression, null);
+    return new NotExpr(expression);
   }
 }

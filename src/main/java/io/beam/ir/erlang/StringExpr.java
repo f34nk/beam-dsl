@@ -1,12 +1,9 @@
 package io.beam.ir.erlang;
 
-public record StringExpr(String value, SourceSpan source) implements Expression {
+public record StringExpr(String value) implements Expression {
 
   public static StringExpr of(String value) {
-    return new StringExpr(value, null);
+    return new StringExpr(value);
   }
 
-  public static StringExpr of(String value, SourceSpan source) {
-    return new StringExpr(value, source);
-  }
 }

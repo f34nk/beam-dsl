@@ -1,8 +1,8 @@
 package io.beam.ir.elixir;
 
-public record AtomExpr(String value, SourceSpan source) implements Expression {
+public record AtomExpr(String value) implements Expression {
 
   public static AtomExpr of(String value) {
-    return new AtomExpr(value, null);
+    return new AtomExpr(value);
   }
 }

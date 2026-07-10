@@ -2,5 +2,5 @@ package io.beam.ir.elixir;
 
 import java.util.List;
 
-public record BinaryExpr(List<BinarySegmentExpr> segments, SourceSpan source)
+public record BinaryExpr(List<BinarySegmentExpr> segments)
     implements Expression {}

@@ -130,8 +130,8 @@ class GoldenElixirRendererTest {
             "%__MODULE__{\n"
                 + "            name: binary() | nil,\n"
                 + "            count: integer() | nil\n"
-                + "          }",
-            null),
+                + "          }"
+            ),
         List.of(DefstructField.field("name"), DefstructField.field("count")));
   }
 
@@ -148,8 +148,8 @@ class GoldenElixirRendererTest {
                 + "            headers: [{binary(), binary()}],\n"
                 + "            body: iodata(),\n"
                 + "            host: binary() | nil\n"
-                + "          }",
-            null),
+                + "          }"
+            ),
         List.of(
             DefstructField.field("method", StringExpr.of("GET")),
             DefstructField.field("path", StringExpr.of("/")),
@@ -169,8 +169,8 @@ class GoldenElixirRendererTest {
                 + "            status: non_neg_integer(),\n"
                 + "            headers: [{binary(), binary()}],\n"
                 + "            body: iodata()\n"
-                + "          }",
-            null),
+                + "          }"
+            ),
         List.of(
             DefstructField.field("status", IntegerExpr.of(200)),
             DefstructField.field("headers", ListExpr.of(List.of())),
@@ -186,8 +186,8 @@ class GoldenElixirRendererTest {
             "%__MODULE__{\n"
                 + "            code: atom(),\n"
                 + "            message: binary() | nil\n"
-                + "          }",
-            null),
+                + "          }"
+            ),
         List.of(DefstructField.field("code"), DefstructField.field("message")));
   }
 
@@ -351,8 +351,8 @@ class GoldenElixirRendererTest {
         NilExpr.of(),
         Spec.of("decode(nil | map()) :: Item.t() | nil"),
         FunctionDoc.of("Decode input with spec and documentation."),
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn1() {
@@ -374,8 +374,8 @@ class GoldenElixirRendererTest {
                         "Map", "get", List.of(Variable.of("map"), StringExpr.of("count")))))),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn2() {
@@ -386,8 +386,8 @@ class GoldenElixirRendererTest {
         NilExpr.of(),
         Spec.of("encode(Item.t() | nil) :: map() | nil"),
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn3() {
@@ -416,16 +416,15 @@ class GoldenElixirRendererTest {
                                                 List.of(
                                                     VariablePattern.of("_k"),
                                                     VariablePattern.of("v")))),
-                                        LocalCallExpr.of("is_nil", List.of(Variable.of("v"))))),
-                                null))),
-                    List.of(),
-                    null),
-                new PipeStep(RemoteCallExpr.of("Map", "new", List.of()), List.of(), null)),
-            null),
+                                        LocalCallExpr.of("is_nil", List.of(Variable.of("v")))))))),
+                    List.of()
+                    ),
+                new PipeStep(RemoteCallExpr.of("Map", "new", List.of()), List.of()))
+            ),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn4() {
@@ -436,8 +435,8 @@ class GoldenElixirRendererTest {
         NilExpr.of(),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn5() {
@@ -448,8 +447,8 @@ class GoldenElixirRendererTest {
         Variable.of("value"),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn6() {
@@ -465,8 +464,8 @@ class GoldenElixirRendererTest {
                 MapEntry.atomKey("count", dot(Variable.of("record"), "count")))),
         Spec.of("with_spec_and_doc(Item.t()) :: map()"),
         FunctionDoc.of("Return a plain map from a struct."),
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn7() {
@@ -477,8 +476,8 @@ class GoldenElixirRendererTest {
         AtomExpr.of("a"),
         Spec.of("with_spec_no_doc(binary()) :: atom() | {:unknown, binary()}"),
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn8() {
@@ -489,8 +488,8 @@ class GoldenElixirRendererTest {
         AtomExpr.of("b"),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn9() {
@@ -502,8 +501,8 @@ class GoldenElixirRendererTest {
         TupleExpr.of(List.of(AtomExpr.of("unknown"), Variable.of("v"))),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn10() {
@@ -514,8 +513,8 @@ class GoldenElixirRendererTest {
         AtomExpr.of("a"),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn11() {
@@ -526,8 +525,8 @@ class GoldenElixirRendererTest {
         AtomExpr.of("b"),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn12() {
@@ -539,8 +538,8 @@ class GoldenElixirRendererTest {
         TupleExpr.of(List.of(AtomExpr.of("unknown"), Variable.of("v"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn13() {
@@ -551,8 +550,8 @@ class GoldenElixirRendererTest {
         NilExpr.of(),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn14() {
@@ -563,8 +562,8 @@ class GoldenElixirRendererTest {
         StringExpr.of("a"),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn15() {
@@ -575,8 +574,8 @@ class GoldenElixirRendererTest {
         StringExpr.of("b"),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn16() {
@@ -587,8 +586,8 @@ class GoldenElixirRendererTest {
         NilExpr.of(),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn17() {
@@ -618,12 +617,12 @@ class GoldenElixirRendererTest {
                             TuplePattern.of(
                                 List.of(VariablePattern.of("k"), VariablePattern.of("_v"))))),
                     TupleExpr.of(List.of(AtomExpr.of("unknown"), Variable.of("k")))),
-                Clause.of(WildcardPattern.of(), NilExpr.of())),
-            null),
+                Clause.of(WildcardPattern.of(), NilExpr.of()))
+            ),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn18() {
@@ -634,8 +633,8 @@ class GoldenElixirRendererTest {
         NilExpr.of(),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn19() {
@@ -649,8 +648,8 @@ class GoldenElixirRendererTest {
         MapExpr.of(List.of(MapEntry.stringKey("left", Variable.of("v")))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn20() {
@@ -664,8 +663,8 @@ class GoldenElixirRendererTest {
         MapExpr.of(List.of(MapEntry.stringKey("right", Variable.of("v")))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn21() {
@@ -680,8 +679,8 @@ class GoldenElixirRendererTest {
         MapExpr.of(List.of(MapEntry.pair(Variable.of("k"), NilExpr.of()))),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn22() {
@@ -692,8 +691,8 @@ class GoldenElixirRendererTest {
         NilExpr.of(),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn23() {
@@ -716,12 +715,12 @@ class GoldenElixirRendererTest {
                 LocalCallExpr.of(
                     "dispatch",
                     List.of(
-                        Variable.of("handler"), Variable.of("config"), Variable.of("request")))),
-            null),
+                        Variable.of("handler"), Variable.of("config"), Variable.of("request"))))
+            ),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn24() {
@@ -742,8 +741,8 @@ class GoldenElixirRendererTest {
         TupleExpr.of(List.of(Variable.of("handler"), Variable.of("method"), Variable.of("path"))),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn25() {
@@ -754,8 +753,8 @@ class GoldenElixirRendererTest {
         NilExpr.of(),
         Spec.of("match_patterns(term()) :: term()"),
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn26() {
@@ -772,8 +771,8 @@ class GoldenElixirRendererTest {
         TupleExpr.of(List.of(AtomExpr.of("map"), Variable.of("value"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn27() {
@@ -789,8 +788,8 @@ class GoldenElixirRendererTest {
         TupleExpr.of(List.of(AtomExpr.of("record"), Variable.of("name"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn28() {
@@ -801,8 +800,8 @@ class GoldenElixirRendererTest {
         TupleExpr.of(List.of(AtomExpr.of("error_record"), BooleanExpr.of(true))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn29() {
@@ -816,8 +815,8 @@ class GoldenElixirRendererTest {
         TupleExpr.of(List.of(AtomExpr.of("tuple"), Variable.of("value"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn30() {
@@ -834,8 +833,8 @@ class GoldenElixirRendererTest {
         TupleExpr.of(List.of(AtomExpr.of("binary"), Variable.of("bin"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn31() {
@@ -847,8 +846,8 @@ class GoldenElixirRendererTest {
         TupleExpr.of(List.of(AtomExpr.of("int"), Variable.of("v"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn32() {
@@ -859,8 +858,8 @@ class GoldenElixirRendererTest {
         TupleExpr.of(List.of(AtomExpr.of("atom"), Variable.of("v"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn33() {
@@ -880,8 +879,8 @@ class GoldenElixirRendererTest {
         elixirTransformBody(),
         Spec.of("transform(config(), Request.t()) :: Response.t()"),
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn34() {
@@ -913,12 +912,12 @@ class GoldenElixirRendererTest {
                         Variable.of("fun"),
                         Variable.of("max"),
                         Variable.of("base"),
-                        IntegerExpr.of(1)))),
-            null),
+                        IntegerExpr.of(1))))
+            ),
         Spec.of("with_retry((-> term()), map()) :: term()"),
         FunctionDoc.of("Invoke fun with exponential backoff on retryable errors."),
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn35() {
@@ -935,8 +934,8 @@ class GoldenElixirRendererTest {
         withRetryCaseBody(),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn36() {
@@ -953,8 +952,8 @@ class GoldenElixirRendererTest {
         Variable.of("true"),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn37() {
@@ -965,8 +964,8 @@ class GoldenElixirRendererTest {
         Variable.of("false"),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn38() {
@@ -975,18 +974,17 @@ class GoldenElixirRendererTest {
         false,
         List.of(FunctionHead.of(List.of(VariablePattern.of("fun")))),
         new TryExpr(
-            new DotCallExpr(Variable.of("fun"), "()", List.of(), null),
+            new DotCallExpr(Variable.of("fun"), "()", List.of()),
             List.of(
                 new CatchClause(
                     WildcardPattern.of(),
                     VariablePattern.of("reason"),
-                    TupleExpr.of(List.of(AtomExpr.of("error"), Variable.of("reason"))),
-                    null)),
-            null),
+                    TupleExpr.of(List.of(AtomExpr.of("error"), Variable.of("reason")))
+                    ))),
         Spec.of("risky_call((-> term())) :: term() | {:error, term()}"),
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn39() {
@@ -1000,12 +998,12 @@ class GoldenElixirRendererTest {
                 Clause.of(NilPattern.of(), AtomExpr.of("error")),
                 Clause.of(
                     VariablePattern.of("v"),
-                    TupleExpr.of(List.of(AtomExpr.of("ok"), Variable.of("v"))))),
-            null),
+                    TupleExpr.of(List.of(AtomExpr.of("ok"), Variable.of("v")))))
+            ),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn40() {
@@ -1017,8 +1015,8 @@ class GoldenElixirRendererTest {
         Variable.of("v"),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn41() {
@@ -1036,12 +1034,12 @@ class GoldenElixirRendererTest {
                 Clause.of(
                     StringPattern.of(""),
                     LocalCallExpr.of("coalesce", List.of(Variable.of("rest")))),
-                Clause.of(VariablePattern.of("value"), Variable.of("value"))),
-            null),
+                Clause.of(VariablePattern.of("value"), Variable.of("value")))
+            ),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn42() {
@@ -1052,8 +1050,8 @@ class GoldenElixirRendererTest {
         NilExpr.of(),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn43() {
@@ -1064,8 +1062,8 @@ class GoldenElixirRendererTest {
         TupleExpr.of(List.of(StringExpr.of(""), StringExpr.of(""))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn44() {
@@ -1076,8 +1074,8 @@ class GoldenElixirRendererTest {
         splitBaseUrlBody(),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn45() {
@@ -1089,8 +1087,8 @@ class GoldenElixirRendererTest {
         flattenPairsBody(),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn46() {
@@ -1101,8 +1099,8 @@ class GoldenElixirRendererTest {
         Variable.of("[]"),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn47() {
@@ -1116,8 +1114,8 @@ class GoldenElixirRendererTest {
         ListExpr.of(List.of(TupleExpr.of(List.of(Variable.of("key"), Variable.of("value"))))),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn48() {
@@ -1128,8 +1126,8 @@ class GoldenElixirRendererTest {
         Variable.of("[{key, value}]"),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn49() {
@@ -1154,14 +1152,14 @@ class GoldenElixirRendererTest {
                     new InfixExpr(
                         LocalCallExpr.of("ct_base", List.of(Variable.of("ct"))),
                         "==",
-                        LocalCallExpr.of("ct_base", List.of(Variable.of("expected"))),
-                        null)),
-                Clause.of(WildcardPattern.of(), Variable.of("false"))),
-            null),
+                        LocalCallExpr.of("ct_base", List.of(Variable.of("expected")))
+                        )),
+                Clause.of(WildcardPattern.of(), Variable.of("false")))
+            ),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn50() {
@@ -1175,12 +1173,12 @@ class GoldenElixirRendererTest {
                 Clause.of(
                     ConsListPattern.of(VariablePattern.of("base"), WildcardPattern.of()),
                     Variable.of("base")),
-                Clause.of(WildcardPattern.of(), Variable.of("ct"))),
-            null),
+                Clause.of(WildcardPattern.of(), Variable.of("ct")))
+            ),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn51() {
@@ -1192,8 +1190,8 @@ class GoldenElixirRendererTest {
             Variable.of("req"), "Request", List.of(StructField.of("host", Variable.of("host")))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn52() {
@@ -1234,13 +1232,12 @@ class GoldenElixirRendererTest {
                         Clause.of(
                             WildcardPattern.of(),
                             TupleExpr.of(
-                                List.of(AtomExpr.of("error"), AtomExpr.of("not_implemented"))))),
-                    null)),
-            null),
+                                List.of(AtomExpr.of("error"), AtomExpr.of("not_implemented")))))
+                    ))),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn53() {
@@ -1251,8 +1248,8 @@ class GoldenElixirRendererTest {
         NilExpr.of(),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn54() {
@@ -1276,12 +1273,11 @@ class GoldenElixirRendererTest {
                             List.of(
                                 TuplePattern.of(
                                     List.of(VariablePattern.of("k"), VariablePattern.of("v")))),
-                            TupleExpr.of(List.of(Variable.of("k"), Variable.of("v"))))),
-                    null))),
+                            TupleExpr.of(List.of(Variable.of("k"), Variable.of("v")))))))),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn55() {
@@ -1292,8 +1288,8 @@ class GoldenElixirRendererTest {
         NilExpr.of(),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn56() {
@@ -1304,8 +1300,8 @@ class GoldenElixirRendererTest {
         MapExpr.of(List.of()),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn57() {
@@ -1320,12 +1316,12 @@ class GoldenElixirRendererTest {
                     TuplePattern.of(List.of(AtomPattern.of("ok"), VariablePattern.of("map"))),
                     IsTypeGuard.of("is_map", "map"),
                     Variable.of("map")),
-                Clause.of(WildcardPattern.of(), MapExpr.of(List.of()))),
-            null),
+                Clause.of(WildcardPattern.of(), MapExpr.of(List.of())))
+            ),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn58() {
@@ -1350,12 +1346,12 @@ class GoldenElixirRendererTest {
                             "Map",
                             "merge",
                             List.of(Variable.of("config_params"), Variable.of("client_params"))),
-                        Variable.of("params")))),
-            null),
+                        Variable.of("params"))))
+            ),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn59() {
@@ -1369,12 +1365,12 @@ class GoldenElixirRendererTest {
                 Clause.of(NilPattern.of(), MapExpr.of(List.of())),
                 Clause.of(
                     VariablePattern.of("value"),
-                    MapExpr.of(List.of(MapEntry.stringKey("Region", Variable.of("value")))))),
-            null),
+                    MapExpr.of(List.of(MapEntry.stringKey("Region", Variable.of("value"))))))
+            ),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn60() {
@@ -1395,8 +1391,8 @@ class GoldenElixirRendererTest {
                         Variable.of("config"), AtomExpr.of("bucket"), StringExpr.of("Bucket"))))),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn61() {
@@ -1416,12 +1412,12 @@ class GoldenElixirRendererTest {
                 Clause.of(
                     VariablePattern.of("value"),
                     MapExpr.of(
-                        List.of(MapEntry.pair(Variable.of("param_key"), Variable.of("value")))))),
-            null),
+                        List.of(MapEntry.pair(Variable.of("param_key"), Variable.of("value"))))))
+            ),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn62() {
@@ -1432,8 +1428,8 @@ class GoldenElixirRendererTest {
         Variable.of("[]"),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn63() {
@@ -1458,12 +1454,11 @@ class GoldenElixirRendererTest {
                             TupleExpr.of(
                                 List.of(
                                     concat(Variable.of("prefix"), Variable.of("h")),
-                                    LocalCallExpr.of("to_binary", List.of(Variable.of("v"))))))),
-                    null))),
+                                    LocalCallExpr.of("to_binary", List.of(Variable.of("v")))))))))),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn64() {
@@ -1475,8 +1470,8 @@ class GoldenElixirRendererTest {
         prefixHeadersFromListBody(),
         null,
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn65() {
@@ -1488,8 +1483,8 @@ class GoldenElixirRendererTest {
         Variable.of("v"),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn66() {
@@ -1507,8 +1502,8 @@ class GoldenElixirRendererTest {
                 LocalCallExpr.of("length", List.of(Variable.of("t"))))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn67() {
@@ -1519,8 +1514,8 @@ class GoldenElixirRendererTest {
         dotCall(Variable.of("v"), List.of(AtomExpr.of("syntax"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn68() {
@@ -1534,8 +1529,8 @@ class GoldenElixirRendererTest {
             List.of(Variable.of("config"), AtomExpr.of("host"), StringExpr.of("localhost"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn69() {
@@ -1549,11 +1544,11 @@ class GoldenElixirRendererTest {
                     IntegerPattern.of(0),
                     VariablePattern.of("_base"),
                     VariablePattern.of("_n")))),
-        new DotCallExpr(Variable.of("fun"), "()", List.of(), null),
+        new DotCallExpr(Variable.of("fun"), "()", List.of()),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn70() {
@@ -1572,8 +1567,8 @@ class GoldenElixirRendererTest {
                                 TuplePattern.of(
                                     List.of(AtomPattern.of("ok"), VariablePattern.of("value"))),
                                 Variable.of("value")),
-                            Clause.of(AtomPattern.of("error"), AtomExpr.of("default"))),
-                        null)),
+                            Clause.of(AtomPattern.of("error"), AtomExpr.of("default")))
+                        )),
                 MatchExpr.bind(
                     "filtered",
                     RemoteCallExpr.of(
@@ -1586,27 +1581,25 @@ class GoldenElixirRendererTest {
                                     AnonFunClause.of(
                                         List.of(VariablePattern.of("v")),
                                         new ComparisonGuard(
-                                            Variable.of("v"), "!=", NilExpr.of(), null),
+                                            Variable.of("v"), "!=", NilExpr.of()),
                                         LocalCallExpr.of(
                                             "encode_value", List.of(Variable.of("v")))),
                                     AnonFunClause.of(
-                                        List.of(WildcardPattern.of()), AtomExpr.of("pop"))),
-                                null)))),
+                                        List.of(WildcardPattern.of()), AtomExpr.of("pop"))))))),
                 new IfExpr(
                     new InfixExpr(
                         LocalCallExpr.of("length", List.of(Variable.of("filtered"))),
                         ">",
-                        IntegerExpr.of(0),
-                        null),
+                        IntegerExpr.of(0)
+                        ),
                     LocalCallExpr.of("hd", List.of(Variable.of("filtered"))),
                     NilExpr.of(),
-                    false,
-                    null)),
-            null),
+                    false
+                    ))),
         Spec.of("helpers() :: term()"),
         null,
-        false,
-        null);
+        false
+        );
   }
 
   private static Function syntaxModuleFn71() {
@@ -1618,8 +1611,8 @@ class GoldenElixirRendererTest {
         RemoteCallExpr.of("Atom", "to_string", List.of(Variable.of("v"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn72() {
@@ -1631,8 +1624,8 @@ class GoldenElixirRendererTest {
         RemoteCallExpr.of("Integer", "to_string", List.of(Variable.of("v"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn73() {
@@ -1643,8 +1636,8 @@ class GoldenElixirRendererTest {
         RemoteCallExpr.of("Float", "to_string", List.of(Variable.of("v"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn74() {
@@ -1655,8 +1648,8 @@ class GoldenElixirRendererTest {
         RemoteCallExpr.of("Atom", "to_string", List.of(Variable.of("v"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn75() {
@@ -1672,8 +1665,8 @@ class GoldenElixirRendererTest {
         RemoteCallExpr.of("String", "trim", List.of(Variable.of("line"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn76() {
@@ -1684,8 +1677,8 @@ class GoldenElixirRendererTest {
         RemoteCallExpr.of("String", "trim", List.of(Variable.of("line"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn77() {
@@ -1699,8 +1692,8 @@ class GoldenElixirRendererTest {
             "Enum", "reject", List.of(Variable.of("list"), CaptureExpr.of("is_nil", 1))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn78() {
@@ -1711,8 +1704,8 @@ class GoldenElixirRendererTest {
         RemoteCallExpr.of("Atom", "to_string", List.of(Variable.of("v"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Function syntaxModuleFn79() {
@@ -1724,8 +1717,8 @@ class GoldenElixirRendererTest {
         RemoteCallExpr.of("Integer", "to_string", List.of(Variable.of("v"))),
         null,
         null,
-        true,
-        null);
+        true
+        );
   }
 
   private static Expression withRetryCaseBody() {
@@ -1738,10 +1731,10 @@ class GoldenElixirRendererTest {
                 "pow",
                 List.of(
                     IntegerExpr.of(2),
-                    new InfixExpr(Variable.of("n"), "-", IntegerExpr.of(1), null))),
-            null);
+                    new InfixExpr(Variable.of("n"), "-", IntegerExpr.of(1))))
+            );
     return new CaseExpr(
-        new DotCallExpr(Variable.of("fun"), "()", List.of(), null),
+        new DotCallExpr(Variable.of("fun"), "()", List.of()),
         List.of(
             Clause.of(
                 AssignPattern.of(
@@ -1756,8 +1749,8 @@ class GoldenElixirRendererTest {
                     new InfixExpr(
                         LocalCallExpr.of("retryable?", List.of(Variable.of("err"))),
                         "and",
-                        new InfixExpr(Variable.of("attempts"), ">", IntegerExpr.of(1), null),
-                        null),
+                        new InfixExpr(Variable.of("attempts"), ">", IntegerExpr.of(1))
+                        ),
                     new BlockExpr(
                         List.of(
                             RemoteCallExpr.of(
@@ -1769,15 +1762,14 @@ class GoldenElixirRendererTest {
                                 List.of(
                                     Variable.of("fun"),
                                     new InfixExpr(
-                                        Variable.of("attempts"), "-", IntegerExpr.of(1), null),
+                                        Variable.of("attempts"), "-", IntegerExpr.of(1)),
                                     Variable.of("base"),
                                     new InfixExpr(
-                                        Variable.of("n"), "+", IntegerExpr.of(1), null)))),
-                        null),
+                                        Variable.of("n"), "+", IntegerExpr.of(1)))))
+                        ),
                     Variable.of("err"),
-                    false,
-                    null))),
-        null);
+                    false)))
+        );
   }
 
   private static Expression splitBaseUrlBody() {
@@ -1791,9 +1783,8 @@ class GoldenElixirRendererTest {
                     new InterpolatedStringExpr(
                         List.of(
                             new InterpolatedLiteral(":"),
-                            new InterpolatedExpr(Variable.of("port"))),
-                        null))),
-            null);
+                            new InterpolatedExpr(Variable.of("port"))))))
+            );
     return new CaseExpr(
         RemoteCallExpr.of("URI", "parse", List.of(Variable.of("base_url"))),
         List.of(
@@ -1812,12 +1803,12 @@ class GoldenElixirRendererTest {
                         TupleExpr.of(
                             List.of(
                                 concat(Variable.of("scheme"), StringExpr.of("://")),
-                                concat(Variable.of("host"), Variable.of("port_suffix"))))),
-                    null)),
+                                concat(Variable.of("host"), Variable.of("port_suffix")))))
+                    )),
             Clause.of(
                 WildcardPattern.of(),
-                TupleExpr.of(List.of(StringExpr.of(""), Variable.of("base_url"))))),
-        null);
+                TupleExpr.of(List.of(StringExpr.of(""), Variable.of("base_url")))))
+        );
   }
 
   private static Expression flattenPairsBody() {
@@ -1826,16 +1817,16 @@ class GoldenElixirRendererTest {
             List.of(
                 new InterpolatedExpr(Variable.of("key")),
                 new InterpolatedLiteral("."),
-                new InterpolatedExpr(Variable.of("i"))),
-            null);
+                new InterpolatedExpr(Variable.of("i")))
+            );
     return new PipeExpr(
         Variable.of("map"),
         List.of(
-            new PipeStep(RemoteCallExpr.of("Map", "to_list", List.of()), List.of(), null),
+            new PipeStep(RemoteCallExpr.of("Map", "to_list", List.of()), List.of()),
             new PipeStep(
                 RemoteCallExpr.of("Enum", "with_index", List.of(IntegerExpr.of(1))),
-                List.of(),
-                null),
+                List.of()
+                ),
             new PipeStep(
                 RemoteCallExpr.of(
                     "Enum",
@@ -1858,12 +1849,9 @@ class GoldenElixirRendererTest {
                                         LocalCallExpr.of(
                                             "flatten_entry",
                                             List.of(keyWithIndex, Variable.of("v"))),
-                                        false,
-                                        null))),
-                            null))),
-                List.of(),
-                null)),
-        null);
+                                        false)))))),
+                List.of()
+                )));
   }
 
   private static Expression prefixHeadersFromListBody() {
@@ -1886,11 +1874,9 @@ class GoldenElixirRendererTest {
                                         LocalCallExpr.of("byte_size", List.of(Variable.of("name"))),
                                         ">",
                                         LocalCallExpr.of(
-                                            "byte_size", List.of(Variable.of("prefix"))),
-                                        null))),
-                            null))),
-                List.of(),
-                null),
+                                            "byte_size", List.of(Variable.of("prefix"))))))))),
+                List.of()
+                ),
             new PipeStep(
                 RemoteCallExpr.of(
                     "Enum",
@@ -1912,11 +1898,9 @@ class GoldenElixirRendererTest {
                                                 LocalCallExpr.of(
                                                     "byte_size", List.of(Variable.of("prefix"))))),
                                         "==",
-                                        Variable.of("prefix"),
-                                        null))),
-                            null))),
-                List.of(),
-                null),
+                                        Variable.of("prefix"))))))),
+                List.of()
+                ),
             new PipeStep(
                 RemoteCallExpr.of(
                     "Map",
@@ -1946,24 +1930,21 @@ class GoldenElixirRendererTest {
                                                         "-",
                                                         LocalCallExpr.of(
                                                             "byte_size",
-                                                            List.of(Variable.of("prefix"))),
-                                                        null))),
-                                            Variable.of("val"))))),
-                            null))),
-                List.of(),
-                null),
+                                                            List.of(Variable.of("prefix")))))),
+                                            Variable.of("val")))))))),
+                List.of()
+                ),
             new PipeStep(
                 CaseExpr.piped(
                     List.of(
                         Clause.of(
                             VariablePattern.of("map"),
                             new ComparisonGuard(
-                                Variable.of("map"), "==", MapExpr.of(List.of()), null),
+                                Variable.of("map"), "==", MapExpr.of(List.of())),
                             NilExpr.of()),
                         Clause.of(VariablePattern.of("map"), Variable.of("map")))),
-                List.of(),
-                null)),
-        null);
+                List.of()
+                )));
   }
 
   private static Expression elixirTransformBody() {
@@ -1985,8 +1966,8 @@ class GoldenElixirRendererTest {
                                         List.of(Variable.of("config"), AtomExpr.of("endpoint"))),
                                     LocalCallExpr.of(
                                         "resolve_host", List.of(Variable.of("config")))))))),
-                Clause.of(VariablePattern.of("given_url"), Variable.of("given_url"))),
-            null);
+                Clause.of(VariablePattern.of("given_url"), Variable.of("given_url")))
+            );
     Expression queryStrCase =
         new CaseExpr(
             RemoteCallExpr.of("Map", "to_list", List.of(Variable.of("query"))),
@@ -1997,8 +1978,8 @@ class GoldenElixirRendererTest {
                     MatchExpr.bind(
                         "encoded",
                         RemoteCallExpr.of("URI", "encode_query", List.of(Variable.of("pairs"))),
-                        concat(StringExpr.of("?"), Variable.of("encoded"))))),
-            null);
+                        concat(StringExpr.of("?"), Variable.of("encoded")))))
+            );
     return new BlockExpr(
         List.of(
             MatchExpr.bind("base_url", baseUrlCase),
@@ -2019,8 +2000,8 @@ class GoldenElixirRendererTest {
                 List.of(
                     StructField.of("status", IntegerExpr.of(200)),
                     StructField.of("headers", Variable.of("headers")),
-                    StructField.of("body", Variable.of("req_url"))))),
-        null);
+                    StructField.of("body", Variable.of("req_url")))))
+        );
   }
 
   private static Expression syntaxExpression() {
@@ -2029,20 +2010,20 @@ class GoldenElixirRendererTest {
             List.of(
                 AnonFunClause.of(
                     List.of(VariablePattern.of("v")),
-                    new ComparisonGuard(Variable.of("v"), "!=", NilExpr.of(), null),
+                    new ComparisonGuard(Variable.of("v"), "!=", NilExpr.of()),
                     TupleExpr.of(
                         List.of(
                             StringExpr.of("key"),
                             RemoteCallExpr.of(
                                 "Codec", "encode_value", List.of(Variable.of("v")))))),
-                AnonFunClause.of(List.of(WildcardPattern.of()), AtomExpr.of("pop"))),
-            null);
+                AnonFunClause.of(List.of(WildcardPattern.of()), AtomExpr.of("pop")))
+            );
     return new PipeExpr(
         ListExpr.of(List.of(Variable.of("value"))),
         List.of(
             new PipeStep(
-                RemoteCallExpr.of("Enum", "filter_map", List.of(filterMapFun)), List.of(), null)),
-        null);
+                RemoteCallExpr.of("Enum", "filter_map", List.of(filterMapFun)), List.of()))
+        );
   }
 
   private static Expression syntaxMapEntries() {
@@ -2071,8 +2052,8 @@ class GoldenElixirRendererTest {
                     List.of(
                         AtomExpr.of("error"),
                         TupleExpr.of(
-                            List.of(AtomExpr.of("checksum_failed"), Variable.of("reason"))))))),
-        null);
+                            List.of(AtomExpr.of("checksum_failed"), Variable.of("reason")))))))
+        );
   }
 
   private static Expression syntaxStatement() {
@@ -2088,8 +2069,8 @@ class GoldenElixirRendererTest {
                     RemoteCallExpr.of("Codec", "decode_response", List.of(Variable.of("resp")))),
                 Clause.of(
                     TuplePattern.of(List.of(AtomPattern.of("error"), VariablePattern.of("reason"))),
-                    TupleExpr.of(List.of(AtomExpr.of("error"), Variable.of("reason"))))),
-            null));
+                    TupleExpr.of(List.of(AtomExpr.of("error"), Variable.of("reason")))))
+            ));
   }
 
   private static Expression syntaxPrelude() {
@@ -2111,10 +2092,7 @@ class GoldenElixirRendererTest {
                             Clause.of(
                                 TuplePattern.of(
                                     List.of(AtomPattern.of("error"), WildcardPattern.of())),
-                                MapExpr.of(List.of()))),
-                        null))),
-            null),
-        null);
+                                MapExpr.of(List.of()))))))));
   }
 
   private static Module syntaxModule(
@@ -2136,14 +2114,14 @@ class GoldenElixirRendererTest {
   }
 
   private static DotCallExpr dot(Expression receiver, String field) {
-    return new DotCallExpr(receiver, field, List.of(), null);
+    return new DotCallExpr(receiver, field, List.of());
   }
 
   private static DotCallExpr dotCall(Expression receiver, List<Expression> args) {
-    return new DotCallExpr(receiver, "()", args, null);
+    return new DotCallExpr(receiver, "()", args);
   }
 
   private static InfixExpr concat(Expression left, Expression right) {
-    return new InfixExpr(left, "<>", right, null);
+    return new InfixExpr(left, "<>", right);
   }
 }

@@ -2,14 +2,14 @@ package io.beam.ir.elixir;
 
 import java.util.List;
 
-public record MapExpr(Expression baseOrNull, List<MapEntry> entries, SourceSpan source)
+public record MapExpr(Expression baseOrNull, List<MapEntry> entries)
     implements Expression {
 
   public static MapExpr of(List<MapEntry> entries) {
-    return new MapExpr(null, entries, null);
+    return new MapExpr(null, entries);
   }
 
   public static MapExpr of(Expression base, List<MapEntry> entries) {
-    return new MapExpr(base, entries, null);
+    return new MapExpr(base, entries);
   }
 }

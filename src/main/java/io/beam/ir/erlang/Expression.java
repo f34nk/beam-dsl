@@ -1,6 +1,6 @@
 package io.beam.ir.erlang;
 
-public sealed interface Expression extends Node
+public sealed interface Expression
     permits AtomExpr,
         IntegerExpr,
         Variable,

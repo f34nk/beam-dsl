@@ -2,18 +2,15 @@ package io.beam.ir.erlang;
 
 import java.util.List;
 
-public record RecordExpr(String name, Expression base, List<RecordField> fields, SourceSpan source)
+public record RecordExpr(String name, Expression base, List<RecordField> fields)
     implements Expression {
 
   public static RecordExpr of(String name, List<RecordField> fields) {
-    return new RecordExpr(name, null, fields, null);
+    return new RecordExpr(name, null, fields);
   }
 
-  public static RecordExpr of(String name, List<RecordField> fields, SourceSpan source) {
-    return new RecordExpr(name, null, fields, source);
-  }
 
   public static RecordExpr update(Expression base, String name, List<RecordField> fields) {
-    return new RecordExpr(name, base, fields, null);
+    return new RecordExpr(name, base, fields);
   }
 }

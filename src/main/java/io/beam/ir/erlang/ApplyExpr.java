@@ -2,14 +2,11 @@ package io.beam.ir.erlang;
 
 import java.util.List;
 
-public record ApplyExpr(Expression callee, List<Expression> arguments, SourceSpan source)
+public record ApplyExpr(Expression callee, List<Expression> arguments)
     implements Expression {
 
   public static ApplyExpr of(Expression callee, List<Expression> arguments) {
-    return new ApplyExpr(callee, arguments, null);
+    return new ApplyExpr(callee, arguments);
   }
 
-  public static ApplyExpr of(Expression callee, List<Expression> arguments, SourceSpan source) {
-    return new ApplyExpr(callee, arguments, source);
-  }
 }

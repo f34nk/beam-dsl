@@ -1,12 +1,9 @@
 package io.beam.ir.erlang;
 
-public record MacroExpr(String name, SourceSpan source) implements Expression {
+public record MacroExpr(String name) implements Expression {
 
   public static MacroExpr of(String name) {
-    return new MacroExpr(name, null);
+    return new MacroExpr(name);
   }
 
-  public static MacroExpr of(String name, SourceSpan source) {
-    return new MacroExpr(name, source);
-  }
 }

@@ -1,12 +1,9 @@
 package io.beam.ir.erlang;
 
-public record VariablePattern(String name, SourceSpan source) implements Pattern {
+public record VariablePattern(String name) implements Pattern {
 
   public static VariablePattern of(String name) {
-    return new VariablePattern(name, null);
+    return new VariablePattern(name);
   }
 
-  public static VariablePattern of(String name, SourceSpan source) {
-    return new VariablePattern(name, source);
-  }
 }

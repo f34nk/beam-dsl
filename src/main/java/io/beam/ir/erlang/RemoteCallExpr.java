@@ -3,7 +3,7 @@ package io.beam.ir.erlang;
 import java.util.List;
 
 public record RemoteCallExpr(
-    Expression module, Expression function, List<Expression> arguments, SourceSpan source)
+    Expression module, Expression function, List<Expression> arguments)
     implements Expression {
 
   public static RemoteCallExpr of(String module, String function, List<Expression> arguments) {
@@ -11,17 +11,8 @@ public record RemoteCallExpr(
   }
 
   public static RemoteCallExpr of(
-      String module, String function, List<Expression> arguments, SourceSpan source) {
-    return of(AtomExpr.of(module), AtomExpr.of(function), arguments, source);
-  }
-
-  public static RemoteCallExpr of(
       Expression module, Expression function, List<Expression> arguments) {
-    return new RemoteCallExpr(module, function, arguments, null);
+    return new RemoteCallExpr(module, function, arguments);
   }
 
-  public static RemoteCallExpr of(
-      Expression module, Expression function, List<Expression> arguments, SourceSpan source) {
-    return new RemoteCallExpr(module, function, arguments, source);
-  }
 }

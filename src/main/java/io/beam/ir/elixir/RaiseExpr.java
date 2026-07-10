@@ -1,14 +1,14 @@
 package io.beam.ir.elixir;
 
 public record RaiseExpr(
-    Expression exception, Expression messageOrNull, boolean parenthesized, SourceSpan source)
+    Expression exception, Expression messageOrNull, boolean parenthesized)
     implements Expression {
 
   public static RaiseExpr of(Expression exception, Expression message) {
-    return new RaiseExpr(exception, message, false, null);
+    return new RaiseExpr(exception, message, false);
   }
 
   public static RaiseExpr parenthesized(Expression exception, Expression message) {
-    return new RaiseExpr(exception, message, true, null);
+    return new RaiseExpr(exception, message, true);
   }
 }

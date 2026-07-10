@@ -260,9 +260,7 @@ class ErlangRendererTest {
                 FunctionClause.of(
                     List.of(VariablePattern.of("X")),
                     InfixExpr.of(Variable.of("X"), "+", IntegerExpr.of(1)))),
-            spec,
-            null,
-            null);
+            spec);
     DefaultErlangRenderer renderer = new DefaultErlangRenderer();
     String result = renderer.renderFunction(function);
     String expected =
@@ -286,8 +284,7 @@ class ErlangRendererTest {
                     List.of(VariablePattern.of("X")),
                     InfixExpr.of(Variable.of("X"), "+", IntegerExpr.of(1)))),
             spec,
-            doc,
-            null);
+            doc);
     DefaultErlangRenderer renderer = new DefaultErlangRenderer();
     String result = renderer.renderFunction(function);
     String expected =
@@ -313,8 +310,7 @@ class ErlangRendererTest {
                     List.of(VariablePattern.of("X")),
                     InfixExpr.of(Variable.of("X"), "+", IntegerExpr.of(1)))),
             spec,
-            edoc,
-            null);
+            edoc);
     DefaultErlangRenderer renderer = new DefaultErlangRenderer();
     String result = renderer.renderFunction(function);
     String expected =
@@ -779,9 +775,7 @@ class ErlangRendererTest {
                                 VariablePattern.of("Request")),
                             AtomExpr.of("ok"))),
                     Spec.of(
-                        "sign(client_config(), Operation :: atom(), http_request()) -> http_request()"),
-                    null,
-                    null)),
+                        "sign(client_config(), Operation :: atom(), http_request()) -> http_request()"))),
             null,
             null,
             "runtime_types.hrl",

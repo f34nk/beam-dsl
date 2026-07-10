@@ -1,6 +1,6 @@
 package io.beam.ir.elixir;
 
-public record MatchExpr(Pattern pattern, Expression value, Expression bodyOrNull, SourceSpan source)
+public record MatchExpr(Pattern pattern, Expression value, Expression bodyOrNull)
     implements Expression {
 
   public static MatchExpr bind(String name, Expression value) {
@@ -8,7 +8,7 @@ public record MatchExpr(Pattern pattern, Expression value, Expression bodyOrNull
   }
 
   public static MatchExpr bind(Pattern pattern, Expression value) {
-    return new MatchExpr(pattern, value, null, null);
+    return new MatchExpr(pattern, value, null);
   }
 
   public static MatchExpr bind(String name, Expression value, Expression body) {
@@ -16,6 +16,6 @@ public record MatchExpr(Pattern pattern, Expression value, Expression bodyOrNull
   }
 
   public static MatchExpr bind(Pattern pattern, Expression value, Expression body) {
-    return new MatchExpr(pattern, value, body, null);
+    return new MatchExpr(pattern, value, body);
   }
 }

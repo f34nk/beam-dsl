@@ -1,12 +1,9 @@
 package io.beam.ir.erlang;
 
-public record IsTypeGuard(String type, Expression expression, SourceSpan source) implements Guard {
+public record IsTypeGuard(String type, Expression expression) implements Guard {
 
   public static IsTypeGuard of(String type, Expression expression) {
-    return new IsTypeGuard(type, expression, null);
+    return new IsTypeGuard(type, expression);
   }
 
-  public static IsTypeGuard of(String type, Expression expression, SourceSpan source) {
-    return new IsTypeGuard(type, expression, source);
-  }
 }

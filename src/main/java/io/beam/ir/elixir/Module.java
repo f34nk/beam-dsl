@@ -10,15 +10,9 @@ public record Module(
     List<String> moduleAttributes,
     List<TypesModule> nestedTypesModules,
     List<String> trailingModuleAttributes,
-    List<Function> functions)
-    implements Node {
+    List<Function> functions) {
 
   public static Module of(String name, List<Function> functions) {
     return new Module(name, null, List.of(), List.of(), List.of(), List.of(), List.of(), functions);
-  }
-
-  @Override
-  public SourceSpan source() {
-    return null;
   }
 }

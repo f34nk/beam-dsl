@@ -1,12 +1,9 @@
 package io.beam.ir.erlang;
 
-public record IfClause(Guard guard, Expression body, SourceSpan source) implements Node {
+public record IfClause(Guard guard, Expression body) {
 
   public static IfClause of(Guard guard, Expression body) {
-    return new IfClause(guard, body, null);
+    return new IfClause(guard, body);
   }
 
-  public static IfClause of(Guard guard, Expression body, SourceSpan source) {
-    return new IfClause(guard, body, source);
-  }
 }

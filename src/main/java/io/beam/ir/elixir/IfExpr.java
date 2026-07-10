@@ -4,6 +4,6 @@ public record IfExpr(
     Expression condition,
     Expression thenBranch,
     Expression elseBranchOrNull,
-    boolean inline,
-    SourceSpan source)
+    boolean inline
+)
     implements Expression {}

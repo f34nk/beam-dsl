@@ -5,27 +5,27 @@ public record BinarySegmentExpr(
     String literal,
     Integer size,
     String type,
-    Integer unit,
-    SourceSpan source) {
+    Integer unit
+) {
 
   public static BinarySegmentExpr literal(String literal) {
-    return new BinarySegmentExpr(null, literal, null, null, null, null);
+    return new BinarySegmentExpr(null, literal, null, null, null);
   }
 
   public static BinarySegmentExpr of(Expression expression) {
-    return new BinarySegmentExpr(expression, null, null, null, null, null);
+    return new BinarySegmentExpr(expression, null, null, null, null);
   }
 
   public static BinarySegmentExpr of(Expression expression, String type) {
-    return new BinarySegmentExpr(expression, null, null, type, null, null);
+    return new BinarySegmentExpr(expression, null, null, type, null);
   }
 
   public static BinarySegmentExpr of(Expression expression, Integer size, String type) {
-    return new BinarySegmentExpr(expression, null, size, type, null, null);
+    return new BinarySegmentExpr(expression, null, size, type, null);
   }
 
   public static BinarySegmentExpr of(
       Expression expression, Integer size, String type, Integer unit) {
-    return new BinarySegmentExpr(expression, null, size, type, unit, null);
+    return new BinarySegmentExpr(expression, null, size, type, unit);
   }
 }

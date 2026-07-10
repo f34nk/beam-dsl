@@ -1,8 +1,8 @@
 package io.beam.ir.elixir;
 
-public record BooleanExpr(boolean value, SourceSpan source) implements Expression {
+public record BooleanExpr(boolean value) implements Expression {
 
   public static BooleanExpr of(boolean value) {
-    return new BooleanExpr(value, null);
+    return new BooleanExpr(value);
   }
 }

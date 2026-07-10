@@ -1,12 +1,9 @@
 package io.beam.ir.erlang;
 
-public record NotEqualGuard(Expression left, Expression right, SourceSpan source) implements Guard {
+public record NotEqualGuard(Expression left, Expression right) implements Guard {
 
   public static NotEqualGuard of(Expression left, Expression right) {
-    return new NotEqualGuard(left, right, null);
+    return new NotEqualGuard(left, right);
   }
 
-  public static NotEqualGuard of(Expression left, Expression right, SourceSpan source) {
-    return new NotEqualGuard(left, right, source);
-  }
 }

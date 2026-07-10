@@ -3,16 +3,19 @@ package io.beam.ir.erlang;
 import java.util.List;
 
 public record Function(
-    String name, List<FunctionClause> clauses, Spec spec, FunctionDoc doc, SourceSpan source)
-    implements Node {
+    String name, List<FunctionClause> clauses, Spec spec, FunctionDoc doc) {
 
   public static Function of(String name, List<FunctionClause> clauses) {
-    return new Function(name, clauses, null, null, null);
+    return new Function(name, clauses, null, null);
+  }
+
+  public static Function of(String name, List<FunctionClause> clauses, Spec spec) {
+    return new Function(name, clauses, spec, null);
   }
 
   public static Function of(
-      String name, List<FunctionClause> clauses, Spec spec, FunctionDoc doc, SourceSpan source) {
-    return new Function(name, clauses, spec, doc, source);
+      String name, List<FunctionClause> clauses, Spec spec, FunctionDoc doc) {
+    return new Function(name, clauses, spec, doc);
   }
 
   public int arity() {

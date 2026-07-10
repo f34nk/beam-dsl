@@ -1,6 +1,6 @@
 package io.beam.ir.elixir;
 
-public sealed interface Pattern extends Node
+public sealed interface Pattern
     permits AtomPattern,
         VariablePattern,
         WildcardPattern,

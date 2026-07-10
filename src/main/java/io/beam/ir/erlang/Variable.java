@@ -1,12 +1,9 @@
 package io.beam.ir.erlang;
 
-public record Variable(String name, SourceSpan source) implements Expression {
+public record Variable(String name) implements Expression {
 
   public static Variable of(String name) {
-    return new Variable(name, null);
+    return new Variable(name);
   }
 
-  public static Variable of(String name, SourceSpan source) {
-    return new Variable(name, source);
-  }
 }

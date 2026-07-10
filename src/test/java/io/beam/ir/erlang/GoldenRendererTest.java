@@ -74,8 +74,7 @@ class GoldenRendererTest {
         "decode_basic_item",
         decodeBasicItemClauses(),
         Spec.of("decode_basic_item(undefined | null | map()) -> undefined | #basic_item{}"),
-        doc,
-        null);
+        doc);
   }
 
   private static Function decodeBasicItemWithoutSpecFunction() {
@@ -201,8 +200,7 @@ class GoldenRendererTest {
                                 Variable.of("Status"),
                                 Variable.of("Body"))))))),
         null,
-        Edoc.of("Error dispatch for smithy.beam.test.awsjson11#GetUser."),
-        null);
+        Edoc.of("Error dispatch for smithy.beam.test.awsjson11#GetUser."));
   }
 
   private static Function uriEncodeFunction() {
@@ -391,9 +389,7 @@ class GoldenRendererTest {
                         Clause.of(
                             VariablePattern.of("Creds"),
                             TupleExpr.of(List.of(AtomExpr.of("ok"), Variable.of("Creds")))))))),
-        Spec.of("resolve(client_config()) -> {ok, aws_credentials()} | {error, term()}"),
-        null,
-        null);
+        Spec.of("resolve(client_config()) -> {ok, aws_credentials()} | {error, term()}"));
   }
 
   private static Function encodeEventHeadersFunction() {
@@ -542,8 +538,7 @@ class GoldenRendererTest {
                         "get_user_input",
                         List.of(RecordField.of("user_name", mapsGet("userName", "Decoded"))))))),
         Spec.of("decode_get_user_request(#http_request{}) -> get_user_input()"),
-        Edoc.of("Decode AWS JSON request for smithy.beam.test.awsjson11#GetUser."),
-        null);
+        Edoc.of("Decode AWS JSON request for smithy.beam.test.awsjson11#GetUser."));
   }
 
   private static Function encodeTimestampDateTimeFunction() {
@@ -869,9 +864,7 @@ class GoldenRendererTest {
                     VariablePattern.of("Operation"),
                     VariablePattern.of("Request")),
                 body)),
-        Spec.of("sign(client_config(), Operation :: atom(), http_request()) -> http_request()"),
-        null,
-        null);
+        Spec.of("sign(client_config(), Operation :: atom(), http_request()) -> http_request()"));
   }
 
   private static Function endpointRulesMergeParamsFunction() {
@@ -1579,9 +1572,7 @@ class GoldenRendererTest {
                                     List.of(MacroExpr.of("HANDLERS_KEY"), MapExpr.of(List.of()))),
                                 TupleExpr.of(
                                     List.of(AtomExpr.of("error"), Variable.of("Reason"))))))))),
-        Spec.of("init_handlers() -> ok | {error, term()}"),
-        null,
-        null);
+        Spec.of("init_handlers() -> ok | {error, term()}"));
   }
 
   private static Function handlerDiscoveryDispatchHandlerFunction() {
@@ -1776,8 +1767,7 @@ class GoldenRendererTest {
                             Clause.of(
                                 TuplePattern.of(
                                     List.of(AtomPattern.of("error"), WildcardPattern.of())),
-                                MapExpr.of(List.of()))))))),
-        null);
+                                MapExpr.of(List.of()))))))));
   }
 
   private static Module syntaxModule() {
@@ -1852,8 +1842,7 @@ class GoldenRendererTest {
         "decode",
         syntaxDecodeClauses(),
         Spec.of("decode(undefined | null | map()) -> undefined | #item{}"),
-        Edoc.of("Decode input with spec and documentation."),
-        null);
+        Edoc.of("Decode input with spec and documentation."));
   }
 
   private static List<FunctionClause> syntaxDecodeClauses() {
@@ -1897,9 +1886,7 @@ class GoldenRendererTest {
                                     BinaryExpr.of("count"),
                                     RecordFieldAccessExpr.of(
                                         Variable.of("Record"), "item", "count")))))))),
-        Spec.of("encode(item() | undefined) -> map() | undefined"),
-        null,
-        null);
+        Spec.of("encode(item() | undefined) -> map() | undefined"));
   }
 
   private static Function syntaxNoSpecNoDocFunction() {
@@ -1925,8 +1912,7 @@ class GoldenRendererTest {
                             AtomExpr.of("count"),
                             RecordFieldAccessExpr.of(Variable.of("Record"), "item", "count")))))),
         Spec.of("with_spec_and_doc(item()) -> map()"),
-        Edoc.of("Return a plain map from a record."),
-        null);
+        Edoc.of("Return a plain map from a record."));
   }
 
   private static Function syntaxWithSpecNoDocFunction() {
@@ -1939,9 +1925,7 @@ class GoldenRendererTest {
                 List.of(VariablePattern.of("V")),
                 IsTypeGuard.of("binary", Variable.of("V")),
                 TupleExpr.of(List.of(AtomExpr.of("unknown"), Variable.of("V"))))),
-        Spec.of("with_spec_no_doc(binary()) -> atom() | {unknown, binary()}"),
-        null,
-        null);
+        Spec.of("with_spec_no_doc(binary()) -> atom() | {unknown, binary()}"));
   }
 
   private static Function syntaxDecodeEnumFunction() {
@@ -2112,9 +2096,7 @@ class GoldenRendererTest {
                 List.of(VariablePattern.of("V")),
                 IsTypeGuard.of("atom", Variable.of("V")),
                 TupleExpr.of(List.of(AtomExpr.of("atom"), Variable.of("V"))))),
-        Spec.of("match_patterns(term()) -> term()"),
-        null,
-        null);
+        Spec.of("match_patterns(term()) -> term()"));
   }
 
   private static Function syntaxTransformFunction() {
@@ -2131,9 +2113,7 @@ class GoldenRendererTest {
                             RecordPatternField.of("query", VariablePattern.of("Query")),
                             RecordPatternField.of("headers", VariablePattern.of("Headers"))))),
                 syntaxTransformBody())),
-        Spec.of("transform(config(), request()) -> response()"),
-        null,
-        null);
+        Spec.of("transform(config(), request()) -> response()"));
   }
 
   private static Expression syntaxTransformBody() {
@@ -2240,8 +2220,7 @@ class GoldenRendererTest {
                                 Variable.of("Base"),
                                 IntegerExpr.of(1))))))),
         Spec.of("with_retry(fun(() -> term()), map()) -> term()"),
-        Edoc.of("Invoke {@code Fun} with exponential backoff on retryable errors."),
-        null);
+        Edoc.of("Invoke {@code Fun} with exponential backoff on retryable errors."));
   }
 
   private static Function syntaxWithRetry4Function() {
@@ -2338,9 +2317,7 @@ class GoldenRendererTest {
                         Clause.of(
                             CatchPattern.anyReason("Reason"),
                             TupleExpr.of(List.of(AtomExpr.of("error"), Variable.of("Reason")))))))),
-        Spec.of("risky_call(fun(() -> term())) -> term() | {error, term()}"),
-        null,
-        null);
+        Spec.of("risky_call(fun(() -> term())) -> term() | {error, term()}"));
   }
 
   private static Function syntaxHelpersFunction() {
@@ -2388,9 +2365,7 @@ class GoldenRendererTest {
                                 Variable.of("Value")),
                             Clause.of(AtomPattern.of("error"), AtomExpr.of("default")))),
                     MatchExpr.bind("Filtered", filtermap, ifExpr)))),
-        Spec.of("helpers() -> term()"),
-        null,
-        null);
+        Spec.of("helpers() -> term()"));
   }
 
   private static Function syntaxFetchFunction() {

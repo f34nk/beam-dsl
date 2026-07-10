@@ -9,12 +9,6 @@ public record Function(
     Expression body,
     Spec specOrNull,
     FunctionDoc docOrNull,
-    boolean oneLiner,
-    SourceSpan source)
-    implements Node {
-
-  @Override
-  public SourceSpan source() {
-    return source;
-  }
+    boolean oneLiner
+) {
 }

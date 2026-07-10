@@ -2,7 +2,7 @@ package io.beam.ir.erlang;
 
 import java.util.List;
 
-public record MapPattern(String variable, List<MapPatternEntry> entries, SourceSpan source)
+public record MapPattern(String variable, List<MapPatternEntry> entries)
     implements Pattern {
 
   public static MapPattern bind(String variable) {
@@ -10,10 +10,10 @@ public record MapPattern(String variable, List<MapPatternEntry> entries, SourceS
   }
 
   public static MapPattern bind(String variable, List<MapPatternEntry> entries) {
-    return new MapPattern(variable, entries, null);
+    return new MapPattern(variable, entries);
   }
 
   public static MapPattern of(List<MapPatternEntry> entries) {
-    return new MapPattern(null, entries, null);
+    return new MapPattern(null, entries);
   }
 }

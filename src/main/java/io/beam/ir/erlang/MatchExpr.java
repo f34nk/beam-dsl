@@ -1,15 +1,14 @@
 package io.beam.ir.erlang;
 
-public record MatchExpr(Pattern pattern, Expression value, Expression body, SourceSpan source)
+public record MatchExpr(Pattern pattern, Expression value, Expression body)
     implements Expression {
 
   public static MatchExpr of(Pattern pattern, Expression value, Expression body) {
-    return new MatchExpr(pattern, value, body, null);
+    return new MatchExpr(pattern, value, body);
   }
 
-  public static MatchExpr of(
-      Pattern pattern, Expression value, Expression body, SourceSpan source) {
-    return new MatchExpr(pattern, value, body, source);
+  public static MatchExpr bind(String name, Expression value) {
+    return bind(name, value, null);
   }
 
   public static MatchExpr bind(String name, Expression value, Expression body) {

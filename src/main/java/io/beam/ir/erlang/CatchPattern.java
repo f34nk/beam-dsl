@@ -1,10 +1,10 @@
 package io.beam.ir.erlang;
 
-public record CatchPattern(Pattern classPattern, Pattern reasonPattern, SourceSpan source)
+public record CatchPattern(Pattern classPattern, Pattern reasonPattern)
     implements Pattern {
 
   public static CatchPattern of(Pattern classPattern, Pattern reasonPattern) {
-    return new CatchPattern(classPattern, reasonPattern, null);
+    return new CatchPattern(classPattern, reasonPattern);
   }
 
   public static CatchPattern anyAny() {

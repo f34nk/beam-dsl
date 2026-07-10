@@ -1,8 +1,8 @@
 package io.beam.ir.elixir;
 
-public record PinPattern(String name, SourceSpan source) implements Pattern {
+public record PinPattern(String name) implements Pattern {
 
   public static PinPattern of(String name) {
-    return new PinPattern(name, null);
+    return new PinPattern(name);
   }
 }

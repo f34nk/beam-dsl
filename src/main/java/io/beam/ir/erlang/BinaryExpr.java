@@ -2,28 +2,19 @@ package io.beam.ir.erlang;
 
 import java.util.List;
 
-public record BinaryExpr(List<BinarySegmentExpr> segments, SourceSpan source)
+public record BinaryExpr(List<BinarySegmentExpr> segments)
     implements Expression {
 
   public static BinaryExpr of(String value) {
     if (value.isEmpty()) {
-      return new BinaryExpr(List.of(), null);
+      return new BinaryExpr(List.of());
     }
-    return new BinaryExpr(List.of(BinarySegmentExpr.literal(value)), null);
+    return new BinaryExpr(List.of(BinarySegmentExpr.literal(value)));
   }
 
-  public static BinaryExpr of(String value, SourceSpan source) {
-    if (value.isEmpty()) {
-      return new BinaryExpr(List.of(), source);
-    }
-    return new BinaryExpr(List.of(BinarySegmentExpr.literal(value)), source);
-  }
 
   public static BinaryExpr of(List<BinarySegmentExpr> segments) {
-    return new BinaryExpr(segments, null);
+    return new BinaryExpr(segments);
   }
 
-  public static BinaryExpr of(List<BinarySegmentExpr> segments, SourceSpan source) {
-    return new BinaryExpr(segments, source);
-  }
 }

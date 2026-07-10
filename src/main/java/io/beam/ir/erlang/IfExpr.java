@@ -2,13 +2,10 @@ package io.beam.ir.erlang;
 
 import java.util.List;
 
-public record IfExpr(List<IfClause> clauses, SourceSpan source) implements Expression {
+public record IfExpr(List<IfClause> clauses) implements Expression {
 
   public static IfExpr of(List<IfClause> clauses) {
-    return new IfExpr(clauses, null);
+    return new IfExpr(clauses);
   }
 
-  public static IfExpr of(List<IfClause> clauses, SourceSpan source) {
-    return new IfExpr(clauses, source);
-  }
 }

@@ -2,13 +2,10 @@ package io.beam.ir.erlang;
 
 import java.util.List;
 
-public record TupleExpr(List<Expression> elements, SourceSpan source) implements Expression {
+public record TupleExpr(List<Expression> elements) implements Expression {
 
   public static TupleExpr of(List<Expression> elements) {
-    return new TupleExpr(elements, null);
+    return new TupleExpr(elements);
   }
 
-  public static TupleExpr of(List<Expression> elements, SourceSpan source) {
-    return new TupleExpr(elements, source);
-  }
 }

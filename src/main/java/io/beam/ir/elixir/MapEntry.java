@@ -1,17 +1,16 @@
 package io.beam.ir.elixir;
 
-public record MapEntry(Expression key, Expression value, boolean arrowSyntax, SourceSpan source)
-    implements Node {
+public record MapEntry(Expression key, Expression value, boolean arrowSyntax) {
 
   public static MapEntry atomKey(String key, Expression value) {
-    return new MapEntry(AtomExpr.of(key), value, false, null);
+    return new MapEntry(AtomExpr.of(key), value, false);
   }
 
   public static MapEntry stringKey(String key, Expression value) {
-    return new MapEntry(StringExpr.of(key), value, true, null);
+    return new MapEntry(StringExpr.of(key), value, true);
   }
 
   public static MapEntry pair(Expression key, Expression value) {
-    return new MapEntry(key, value, true, null);
+    return new MapEntry(key, value, true);
   }
 }

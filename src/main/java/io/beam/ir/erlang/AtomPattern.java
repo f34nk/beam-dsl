@@ -1,12 +1,9 @@
 package io.beam.ir.erlang;
 
-public record AtomPattern(String value, SourceSpan source) implements Pattern {
+public record AtomPattern(String value) implements Pattern {
 
   public static AtomPattern of(String value) {
-    return new AtomPattern(value, null);
+    return new AtomPattern(value);
   }
 
-  public static AtomPattern of(String value, SourceSpan source) {
-    return new AtomPattern(value, source);
-  }
 }

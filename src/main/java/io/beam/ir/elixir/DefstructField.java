@@ -1,22 +1,16 @@
 package io.beam.ir.elixir;
 
-public record DefstructField(String nameOrNil, Expression defaultOrNull, SourceSpan source)
-    implements Node {
+public record DefstructField(String nameOrNil, Expression defaultOrNull) {
 
   public static DefstructField field(String name) {
-    return new DefstructField(name, null, null);
+    return new DefstructField(name, null);
   }
 
   public static DefstructField field(String name, Expression defaultValue) {
-    return new DefstructField(name, defaultValue, null);
+    return new DefstructField(name, defaultValue);
   }
 
   public static DefstructField nilField() {
-    return new DefstructField(null, null, null);
-  }
-
-  @Override
-  public SourceSpan source() {
-    return source;
+    return new DefstructField(null, null);
   }
 }
