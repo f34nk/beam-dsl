@@ -25,23 +25,19 @@ class ErlangRendererTest {
             ListComprehensionExpr.of(
                 Variable.of("T"),
                 List.of(
-                    ListComprehensionGenerator.of(
-                        VariablePattern.of("T"), Variable.of("Content")),
+                    ListComprehensionGenerator.of(VariablePattern.of("T"), Variable.of("Content")),
                     ListComprehensionFilter.of(filter)))));
   }
 
   @Test
   void rendersFunRefExpr() {
     assertEquals(
-        "fun should_retry/1",
-        ErlangRenderer.renderExpression(FunRefExpr.of("should_retry", 1)));
+        "fun should_retry/1", ErlangRenderer.renderExpression(FunRefExpr.of("should_retry", 1)));
   }
 
   @Test
   void rendersQuotedAtomExpr() {
-    assertEquals(
-        "'xmlns:'",
-        ErlangRenderer.renderExpression(QuotedAtomExpr.of("xmlns:")));
+    assertEquals("'xmlns:'", ErlangRenderer.renderExpression(QuotedAtomExpr.of("xmlns:")));
   }
 
   @Test

@@ -3,10 +3,7 @@ package io.beam.ir.erlang;
 import java.util.List;
 
 public record BlockExpr(
-    List<Expression> expressions,
-    BlockSeparator separator,
-    boolean terminateWithPeriod
-)
+    List<Expression> expressions, BlockSeparator separator, boolean terminateWithPeriod)
     implements Expression {
 
   public enum BlockSeparator {

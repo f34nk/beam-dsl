@@ -1,10 +1,8 @@
 package io.beam.ir.erlang;
 
-public record ListComprehensionFilter(Expression expression)
-    implements ListComprehensionQualifier {
+public record ListComprehensionFilter(Expression expression) implements ListComprehensionQualifier {
 
   public static ListComprehensionFilter of(Expression expression) {
     return new ListComprehensionFilter(expression);
   }
-
 }

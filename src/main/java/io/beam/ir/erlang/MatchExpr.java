@@ -1,7 +1,6 @@
 package io.beam.ir.erlang;
 
-public record MatchExpr(Pattern pattern, Expression value, Expression body)
-    implements Expression {
+public record MatchExpr(Pattern pattern, Expression value, Expression body) implements Expression {
 
   public static MatchExpr of(Pattern pattern, Expression value, Expression body) {
     return new MatchExpr(pattern, value, body);

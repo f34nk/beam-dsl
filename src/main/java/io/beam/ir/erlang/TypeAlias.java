@@ -6,8 +6,7 @@ public record TypeAlias(
     String name,
     String definition,
     List<String> preambleCommentsOrNull,
-    List<String> variantsOrNull
-) {
+    List<String> variantsOrNull) {
 
   public static TypeAlias of(String name, String definition) {
     return new TypeAlias(name, definition, null, null);

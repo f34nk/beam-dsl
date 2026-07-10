@@ -1,4 +1,3 @@
 package io.beam.ir.elixir;
 
-public record UseOption(String key, Expression value) {
-}
+public record UseOption(String key, Expression value) {}

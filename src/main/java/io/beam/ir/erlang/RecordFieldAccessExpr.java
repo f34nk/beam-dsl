@@ -1,7 +1,6 @@
 package io.beam.ir.erlang;
 
-public record RecordFieldAccessExpr(
-    Expression receiver, String recordName, String fieldName)
+public record RecordFieldAccessExpr(Expression receiver, String recordName, String fieldName)
     implements Expression {
 
   public static RecordFieldAccessExpr of(Expression receiver, String recordName, String fieldName) {

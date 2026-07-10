@@ -9,6 +9,4 @@ public record Function(
     Expression body,
     Spec specOrNull,
     FunctionDoc docOrNull,
-    boolean oneLiner
-) {
-}
+    boolean oneLiner) {}

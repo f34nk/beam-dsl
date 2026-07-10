@@ -1,7 +1,6 @@
 package io.beam.ir.elixir;
 
-public record BinarySegmentPattern(
-    Pattern patternOrNull, String literalOrNull, String typeOrNull) {
+public record BinarySegmentPattern(Pattern patternOrNull, String literalOrNull, String typeOrNull) {
 
   public static BinarySegmentPattern literal(String literal) {
     return new BinarySegmentPattern(null, literal, null);

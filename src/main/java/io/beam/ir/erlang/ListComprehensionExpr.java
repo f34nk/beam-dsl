@@ -4,14 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record ListComprehensionExpr(
-    Expression expression, List<ListComprehensionQualifier> qualifiers)
-    implements Expression {
+    Expression expression, List<ListComprehensionQualifier> qualifiers) implements Expression {
 
   public static ListComprehensionExpr of(
       Expression expression, List<ListComprehensionQualifier> qualifiers) {
     return new ListComprehensionExpr(expression, qualifiers);
   }
-
 
   public static ListComprehensionExpr of(
       Expression expression, Pattern pattern, Expression source, List<Expression> filters) {

@@ -1,4 +1,3 @@
 package io.beam.ir.elixir;
 
-public record CatchClause(Pattern kind, Pattern reason, Expression body)
-    {}
+public record CatchClause(Pattern kind, Pattern reason, Expression body) {}

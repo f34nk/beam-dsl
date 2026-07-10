@@ -2,8 +2,7 @@ package io.beam.ir.elixir;
 
 import java.util.List;
 
-public record RemoteCallExpr(
-    String module, String function, List<Expression> args)
+public record RemoteCallExpr(String module, String function, List<Expression> args)
     implements Expression {
 
   public static RemoteCallExpr of(String module, String function, List<Expression> args) {

@@ -9,5 +9,4 @@ public record WildcardPattern(String name) implements Pattern {
   public static WildcardPattern of(String name) {
     return new WildcardPattern(name);
   }
-
 }

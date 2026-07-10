@@ -92,8 +92,7 @@ class ElixirRendererTest {
         "%{:headers => headers}",
         ElixirRenderer.renderPattern(
             new StructPattern(
-                null,
-                List.of(new StructPatternField("headers", VariablePattern.of("headers"))))));
+                null, List.of(new StructPatternField("headers", VariablePattern.of("headers"))))));
   }
 
   @Test
@@ -141,8 +140,7 @@ class ElixirRendererTest {
                 List.of(
                     new PipeStep(
                         RemoteCallExpr.of("AwsEventStream", "decode_frames", List.of()),
-                        List.of()
-                        )))));
+                        List.of())))));
   }
 
   @Test
@@ -181,8 +179,7 @@ class ElixirRendererTest {
                     Clause.of(
                         TuplePattern.of(
                             List.of(AtomPattern.of("error"), VariablePattern.of("reason"))),
-                        TupleExpr.of(List.of(AtomExpr.of("error"), Variable.of("reason")))))
-                ));
+                        TupleExpr.of(List.of(AtomExpr.of("error"), Variable.of("reason")))))));
     assertEquals(
         """
         case RuntimeHttp.dispatch(config, req) do
@@ -392,8 +389,7 @@ class ElixirRendererTest {
                 List.of(Variable.of("events"), CaptureExpr.of("encode_event_stream_event", 1))),
             null,
             FunctionDoc.of("Encodes a list of event stream events into framed binaries."),
-            false
-            );
+            false);
     assertEquals(
         """
         defmodule EventStreamRestJsonServiceEventStream do
@@ -438,9 +434,7 @@ class ElixirRendererTest {
                 "GetNameOutput",
                 Moduledoc.of("structure GetNameOutput"),
                 new TypeDef(
-                    "t",
-                    "%__MODULE__{\n          name: HttpServiceClient.name() | nil\n        }"
-                    ),
+                    "t", "%__MODULE__{\n          name: HttpServiceClient.name() | nil\n        }"),
                 List.of(DefstructField.field("name")))));
   }
 
@@ -487,8 +481,7 @@ class ElixirRendererTest {
                                     TuplePattern.of(
                                         List.of(AtomPattern.of("ok"), VariablePattern.of("value"))),
                                     Variable.of("value")),
-                                Clause.of(AtomPattern.of("error"), AtomExpr.of("default")))
-                            )),
+                                Clause.of(AtomPattern.of("error"), AtomExpr.of("default"))))),
                     MatchExpr.bind(
                         "filtered",
                         RemoteCallExpr.of(
@@ -499,17 +492,16 @@ class ElixirRendererTest {
                                 new AnonFun(
                                     List.of(
                                         AnonFunClause.of(
-                                            List.of(VariablePattern.of("v")), Variable.of("v"))))))),
+                                            List.of(VariablePattern.of("v")),
+                                            Variable.of("v"))))))),
                     new IfExpr(
                         new InfixExpr(
                             LocalCallExpr.of("length", List.of(Variable.of("filtered"))),
                             ">",
-                            IntegerExpr.of(0)
-                            ),
+                            IntegerExpr.of(0)),
                         LocalCallExpr.of("hd", List.of(Variable.of("filtered"))),
                         NilExpr.of(),
-                        false
-                        )))));
+                        false)))));
   }
 
   @Test
@@ -528,8 +520,7 @@ class ElixirRendererTest {
                     new CatchClause(
                         WildcardPattern.of(),
                         VariablePattern.of("reason"),
-                        TupleExpr.of(List.of(AtomExpr.of("error"), Variable.of("reason")))
-                        )))));
+                        TupleExpr.of(List.of(AtomExpr.of("error"), Variable.of("reason"))))))));
   }
 
   @Test
@@ -559,9 +550,9 @@ class ElixirRendererTest {
                                                     List.of(
                                                         VariablePattern.of("_k"),
                                                         VariablePattern.of("v")))),
-                                            LocalCallExpr.of("is_nil", List.of(Variable.of("v")))))))),
-                        List.of()
-                        ),
+                                            LocalCallExpr.of(
+                                                "is_nil", List.of(Variable.of("v")))))))),
+                        List.of()),
                     new PipeStep(RemoteCallExpr.of("Map", "new", List.of()), List.of())))));
   }
 
@@ -619,8 +610,7 @@ class ElixirRendererTest {
                     MatchExpr.bind(
                         "req_url",
                         new InfixExpr(
-                            new InfixExpr(
-                                Variable.of("scheme"), "<>", Variable.of("authority")),
+                            new InfixExpr(Variable.of("scheme"), "<>", Variable.of("authority")),
                             "<>",
                             Variable.of("path")))))));
   }
@@ -640,8 +630,7 @@ class ElixirRendererTest {
                 new InfixExpr(
                     LocalCallExpr.of("retryable?", List.of(Variable.of("err"))),
                     "and",
-                    new InfixExpr(Variable.of("attempts"), ">", IntegerExpr.of(1))
-                    ),
+                    new InfixExpr(Variable.of("attempts"), ">", IntegerExpr.of(1))),
                 new BlockExpr(
                     List.of(
                         RemoteCallExpr.of("Process", "sleep", List.of(Variable.of("base"))),
@@ -649,11 +638,9 @@ class ElixirRendererTest {
                             "with_retry",
                             List.of(
                                 Variable.of("fun"),
-                                new InfixExpr(
-                                    Variable.of("attempts"), "-", IntegerExpr.of(1)),
+                                new InfixExpr(Variable.of("attempts"), "-", IntegerExpr.of(1)),
                                 Variable.of("base"),
-                                new InfixExpr(Variable.of("n"), "+", IntegerExpr.of(1)))))
-                    ),
+                                new InfixExpr(Variable.of("n"), "+", IntegerExpr.of(1)))))),
                 Variable.of("err"),
                 false)));
   }

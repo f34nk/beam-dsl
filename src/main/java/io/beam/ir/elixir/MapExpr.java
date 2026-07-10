@@ -2,8 +2,7 @@ package io.beam.ir.elixir;
 
 import java.util.List;
 
-public record MapExpr(Expression baseOrNull, List<MapEntry> entries)
-    implements Expression {
+public record MapExpr(Expression baseOrNull, List<MapEntry> entries) implements Expression {
 
   public static MapExpr of(List<MapEntry> entries) {
     return new MapExpr(null, entries);

@@ -2,8 +2,7 @@ package io.beam.ir.erlang;
 
 import java.util.List;
 
-public record RemoteCallExpr(
-    Expression module, Expression function, List<Expression> arguments)
+public record RemoteCallExpr(Expression module, Expression function, List<Expression> arguments)
     implements Expression {
 
   public static RemoteCallExpr of(String module, String function, List<Expression> arguments) {
@@ -14,5 +13,4 @@ public record RemoteCallExpr(
       Expression module, Expression function, List<Expression> arguments) {
     return new RemoteCallExpr(module, function, arguments);
   }
-
 }

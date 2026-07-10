@@ -1,7 +1,6 @@
 package io.beam.ir.elixir;
 
-public record RaiseExpr(
-    Expression exception, Expression messageOrNull, boolean parenthesized)
+public record RaiseExpr(Expression exception, Expression messageOrNull, boolean parenthesized)
     implements Expression {
 
   public static RaiseExpr of(Expression exception, Expression message) {

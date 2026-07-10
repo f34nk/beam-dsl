@@ -1,12 +1,7 @@
 package io.beam.ir.erlang;
 
 public record BinarySegmentExpr(
-    Expression expression,
-    String literal,
-    Integer size,
-    String type,
-    Integer unit
-) {
+    Expression expression, String literal, Integer size, String type, Integer unit) {
 
   public static BinarySegmentExpr literal(String literal) {
     return new BinarySegmentExpr(null, literal, null, null, null);

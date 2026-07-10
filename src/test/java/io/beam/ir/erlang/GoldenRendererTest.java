@@ -2347,8 +2347,7 @@ class GoldenRendererTest {
                             ">",
                             IntegerExpr.of(0))),
                     LocalCallExpr.of("hd", List.of(Variable.of("Filtered")))),
-                IfClause.of(
-                    ExpressionGuard.of(AtomExpr.of("true")), AtomExpr.of("undefined"))));
+                IfClause.of(ExpressionGuard.of(AtomExpr.of("true")), AtomExpr.of("undefined"))));
     return Function.of(
         "helpers",
         List.of(

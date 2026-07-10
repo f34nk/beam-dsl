@@ -2,8 +2,7 @@ package io.beam.ir.erlang;
 
 import java.util.List;
 
-public record MapPattern(String variable, List<MapPatternEntry> entries)
-    implements Pattern {
+public record MapPattern(String variable, List<MapPatternEntry> entries) implements Pattern {
 
   public static MapPattern bind(String variable) {
     return bind(variable, List.of());
