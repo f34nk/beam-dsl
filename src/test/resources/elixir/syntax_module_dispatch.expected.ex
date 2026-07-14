@@ -1,9 +1,9 @@
 defmodule SyntaxFixtureDispatch do
   @moduledoc "Dispatch coverage for Elixir IR rendering."
 
-  alias SyntaxTypes.Request, as: Request
-
   @default_handler :default
+
+  alias SyntaxTypes.Request, as: Request
 
   def dispatch(config, request) do
     handler = Map.get(config, :handler, @default_handler)

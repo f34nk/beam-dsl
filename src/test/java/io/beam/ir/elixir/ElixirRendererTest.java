@@ -56,7 +56,7 @@ class ElixirRendererTest {
         ElixirRenderer.renderExpression(
             MapExpr.of(List.of(MapEntry.stringKey("k", Variable.of("v"))))));
     assertEquals(
-        "acc %{key: val}",
+        "%{acc | key: val}",
         ElixirRenderer.renderExpression(
             MapExpr.of(Variable.of("acc"), List.of(MapEntry.atomKey("key", Variable.of("val"))))));
   }

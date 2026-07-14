@@ -1,9 +1,9 @@
 defmodule SyntaxFixturePrivate do
   @moduledoc "Private helper coverage for Elixir IR rendering."
 
-  alias SyntaxTypes.Request, as: Request
-
   @handlers_key :handlers
+
+  alias SyntaxTypes.Request, as: Request
 
   defp parse_header("[" <> _ = line), do: String.trim(line)
   defp parse_header(line), do: String.trim(line)

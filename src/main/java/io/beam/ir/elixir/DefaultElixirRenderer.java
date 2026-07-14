@@ -184,8 +184,28 @@ final class DefaultElixirRenderer implements Renderer {
 
   private void render(MapExpr map, StringBuilder out, String indent) {
     if (map.baseOrNull() != null) {
-      render(map.baseOrNull(), out, indent);
-      out.append(' ');
+      if (!mapExceedsPrintWidth(map)) {
+        out.append("%{");
+        render(map.baseOrNull(), out, indent);
+        out.append(" | ");
+        renderMapEntries(map.entries(), out, indent);
+        out.append('}');
+        return;
+      }
+      out.append("%{\n");
+      String entryIndent = indent + INDENT;
+      out.append(entryIndent);
+      render(map.baseOrNull(), out, entryIndent);
+      out.append(" |\n");
+      for (int i = 0; i < map.entries().size(); i++) {
+        if (i > 0) {
+          out.append(",\n");
+        }
+        out.append(entryIndent);
+        renderMapEntry(map.entries().get(i), out, entryIndent);
+      }
+      out.append('\n').append(indent).append('}');
+      return;
     }
     out.append('%');
     if (!mapExceedsPrintWidth(map)) {
@@ -313,11 +333,70 @@ final class DefaultElixirRenderer implements Renderer {
   }
 
   private void renderPipeStep(PipeStep step, StringBuilder out, String indent) {
+    if (step.callable() instanceof RemoteCallExpr call
+        && "Kernel".equals(call.module())
+        && "then".equals(call.function())
+        && call.args().isEmpty()
+        && step.extraArgs().size() == 1
+        && step.extraArgs().get(0) instanceof AnonFun fun) {
+      out.append("then(");
+      render(fun, out, indent);
+      out.append(')');
+      return;
+    }
+    if (step.callable() instanceof RemoteCallExpr call
+        && call.args().isEmpty()
+        && step.extraArgs().size() == 1
+        && isKeywordList(step.extraArgs().get(0))) {
+      out.append(call.module()).append('.').append(call.function());
+      renderKeywordList((ListExpr) step.extraArgs().get(0), out, indent);
+      return;
+    }
+    if (step.callable() instanceof LocalCallExpr call
+        && call.args().isEmpty()
+        && step.extraArgs().size() == 1
+        && isKeywordList(step.extraArgs().get(0))) {
+      out.append(call.function());
+      renderKeywordList((ListExpr) step.extraArgs().get(0), out, indent);
+      return;
+    }
     render(step.callable(), out, indent);
+    if (step.extraArgs().size() == 1 && isKeywordList(step.extraArgs().get(0))) {
+      renderKeywordList((ListExpr) step.extraArgs().get(0), out, indent);
+      return;
+    }
     for (Expression arg : step.extraArgs()) {
       out.append(", ");
       render(arg, out, indent);
     }
+  }
+
+  private static boolean isKeywordList(Expression expression) {
+    if (!(expression instanceof ListExpr list) || list.elements().isEmpty()) {
+      return false;
+    }
+    for (Expression element : list.elements()) {
+      if (!(element instanceof TupleExpr tuple) || tuple.elements().size() != 2) {
+        return false;
+      }
+      if (!(tuple.elements().get(0) instanceof AtomExpr)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private void renderKeywordList(ListExpr keywords, StringBuilder out, String indent) {
+    out.append('(');
+    for (int i = 0; i < keywords.elements().size(); i++) {
+      if (i > 0) {
+        out.append(", ");
+      }
+      TupleExpr tuple = (TupleExpr) keywords.elements().get(i);
+      out.append(((AtomExpr) tuple.elements().get(0)).value()).append(": ");
+      render(tuple.elements().get(1), out, indent);
+    }
+    out.append(')');
   }
 
   private boolean pipeExceedsPrintWidth(PipeExpr pipe) {
@@ -597,18 +676,24 @@ final class DefaultElixirRenderer implements Renderer {
 
   private void render(AnonFun fun, StringBuilder out, String indent) {
     List<AnonFunClause> clauses = fun.clauses();
-    if (clauses.size() == 1 && clauses.get(0).guardOrNull() == null) {
+      if (clauses.size() == 1 && clauses.get(0).guardOrNull() == null) {
       AnonFunClause clause = clauses.get(0);
       if (isSimpleAnonFunBody(clause.body())) {
-        out.append("fn ");
-        renderAnonFunParams(clause.params(), out);
+        out.append("fn");
+        if (!clause.params().isEmpty()) {
+          out.append(' ');
+          renderAnonFunParams(clause.params(), out);
+        }
         out.append(" -> ");
         render(clause.body(), out, indent);
         out.append(" end");
         return;
       }
-      out.append("fn ");
-      renderAnonFunParams(clause.params(), out);
+      out.append("fn");
+      if (!clause.params().isEmpty()) {
+        out.append(' ');
+        renderAnonFunParams(clause.params(), out);
+      }
       out.append(" ->\n");
       out.append(indent).append(INDENT);
       render(clause.body(), out, indent + INDENT);
@@ -651,6 +736,9 @@ final class DefaultElixirRenderer implements Renderer {
   }
 
   private void renderAnonFunParams(List<Pattern> params, StringBuilder out) {
+    if (params.isEmpty()) {
+      return;
+    }
     if (params.size() == 1) {
       render(params.get(0), out);
       return;
@@ -1213,10 +1301,7 @@ final class DefaultElixirRenderer implements Renderer {
     out.append("defmodule ").append(module.name()).append(" do\n");
     boolean hasHeader = false;
     if (module.moduledocOrNull() != null) {
-      out.append(INDENT)
-          .append("@moduledoc ")
-          .append(formatModuledoc(module.moduledocOrNull()))
-          .append('\n');
+      renderModuledoc(module.moduledocOrNull(), out, INDENT);
       hasHeader = true;
     }
     if (!module.uses().isEmpty()) {
@@ -1229,6 +1314,15 @@ final class DefaultElixirRenderer implements Renderer {
       }
       hasHeader = true;
     }
+    if (!module.moduleAttributes().isEmpty()) {
+      if (hasHeader) {
+        out.append('\n');
+      }
+      for (int i = 0; i < module.moduleAttributes().size(); i++) {
+        out.append(INDENT).append(module.moduleAttributes().get(i)).append('\n');
+      }
+      hasHeader = true;
+    }
     if (!module.aliases().isEmpty()) {
       if (hasHeader) {
         out.append('\n');
@@ -1236,15 +1330,6 @@ final class DefaultElixirRenderer implements Renderer {
       for (Alias alias : module.aliases()) {
         render(alias, out, INDENT);
         out.append('\n');
-      }
-      hasHeader = true;
-    }
-    if (!module.moduleAttributes().isEmpty()) {
-      if (hasHeader) {
-        out.append('\n');
-      }
-      for (int i = 0; i < module.moduleAttributes().size(); i++) {
-        out.append(INDENT).append(module.moduleAttributes().get(i)).append('\n');
       }
       hasHeader = true;
     }
@@ -1324,11 +1409,24 @@ final class DefaultElixirRenderer implements Renderer {
     return !(previous.oneLiner() && current.oneLiner());
   }
 
-  private static String formatModuledoc(Moduledoc moduledoc) {
+  private void renderModuledoc(Moduledoc moduledoc, StringBuilder out, String indent) {
     if (moduledoc.literal()) {
-      return moduledoc.text();
+      out.append(indent).append("@moduledoc ").append(moduledoc.text()).append('\n');
+      return;
     }
-    return "\"" + moduledoc.text().replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+    String text = moduledoc.text();
+    if (!text.contains("\n")) {
+      out.append(indent)
+          .append("@moduledoc \"")
+          .append(escapeString(text))
+          .append("\"\n");
+      return;
+    }
+    out.append(indent).append("@moduledoc \"\"\"\n");
+    for (String line : text.split("\n", -1)) {
+      out.append(indent).append(line).append('\n');
+    }
+    out.append(indent).append("\"\"\"\n");
   }
 
   private void render(UseDirective use, StringBuilder out, String indent) {
@@ -1357,10 +1455,8 @@ final class DefaultElixirRenderer implements Renderer {
     StringBuilder out = new StringBuilder();
     out.append("defmodule ").append(typesModule.name()).append(" do\n");
     if (typesModule.moduledocOrNull() != null) {
-      out.append(INDENT)
-          .append("@moduledoc ")
-          .append(formatModuledoc(typesModule.moduledocOrNull()))
-          .append("\n\n");
+      renderModuledoc(typesModule.moduledocOrNull(), out, INDENT);
+      out.append('\n');
     }
     render(typesModule.typeDef(), out, INDENT);
     out.append("\n\n");
