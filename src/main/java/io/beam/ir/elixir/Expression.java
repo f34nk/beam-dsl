@@ -28,4 +28,5 @@ public sealed interface Expression
         BinaryExpr,
         NotExpr,
         CondExpr,
-        WithExpr {}
+        WithExpr,
+        CharlistExpr {}

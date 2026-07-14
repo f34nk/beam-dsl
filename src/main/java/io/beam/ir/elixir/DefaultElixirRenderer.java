@@ -141,6 +141,8 @@ final class DefaultElixirRenderer implements Renderer {
       render(cond, out, indent);
     } else if (expression instanceof WithExpr with) {
       render(with, out, indent);
+    } else if (expression instanceof CharlistExpr charlist) {
+      out.append("~c\"").append(escapeString(charlist.value())).append('"');
     } else {
       throw new IllegalArgumentException("Unsupported expression: " + expression);
     }

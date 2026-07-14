@@ -351,6 +351,12 @@ class ElixirRendererTest {
   }
 
   @Test
+  void rendersCharlistExpr() {
+    assertEquals(
+        "~c\"content-type\"", ElixirRenderer.renderExpression(CharlistExpr.of("content-type")));
+  }
+
+  @Test
   void rendersCaseExprWithGuard() {
     assertEquals(
         """
