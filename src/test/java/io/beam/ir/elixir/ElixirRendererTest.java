@@ -292,6 +292,17 @@ class ElixirRendererTest {
   }
 
   @Test
+  void rendersNotExprInGuard() {
+    DefaultElixirRenderer renderer = new DefaultElixirRenderer();
+    assertEquals(
+        "not is_nil(value)",
+        renderer.renderGuardForTest(
+            ExpressionGuard.of(
+                NotExpr.of(
+                    LocalCallExpr.of("is_nil", List.of(Variable.of("value")))))));
+  }
+
+  @Test
   void rendersCaseExprWithGuard() {
     assertEquals(
         """

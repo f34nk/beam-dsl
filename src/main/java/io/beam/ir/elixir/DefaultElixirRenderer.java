@@ -61,9 +61,26 @@ final class DefaultElixirRenderer implements Renderer {
           .append(", ")
           .append(fnGuard.arity())
           .append(')');
+    } else if (guard instanceof ExpressionGuard expressionGuard) {
+      renderGuardExpression(expressionGuard.expression(), out);
     } else {
       throw new IllegalArgumentException("Unsupported guard: " + guard);
     }
+  }
+
+  private void renderGuardExpression(Expression expression, StringBuilder out) {
+    if (expression instanceof NotExpr notExpr) {
+      out.append("not ");
+      renderGuardExpression(notExpr.expression(), out);
+      return;
+    }
+    if (expression instanceof InfixExpr infix) {
+      render(infix.left(), out, "");
+      out.append(' ').append(infix.op()).append(' ');
+      render(infix.right(), out, "");
+      return;
+    }
+    render(expression, out, "");
   }
 
   private void render(Expression expression, StringBuilder out, String indent) {
@@ -117,6 +134,9 @@ final class DefaultElixirRenderer implements Renderer {
       render(raise, out, indent);
     } else if (expression instanceof BinaryExpr binary) {
       render(binary, out, indent);
+    } else if (expression instanceof NotExpr notExpr) {
+      out.append("not ");
+      render(notExpr.expression(), out, indent);
     } else {
       throw new IllegalArgumentException("Unsupported expression: " + expression);
     }

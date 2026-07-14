@@ -25,4 +25,5 @@ public sealed interface Expression
         AnonFun,
         TryExpr,
         RaiseExpr,
-        BinaryExpr {}
+        BinaryExpr,
+        NotExpr {}
