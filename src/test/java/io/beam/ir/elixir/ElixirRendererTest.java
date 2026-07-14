@@ -298,8 +298,7 @@ class ElixirRendererTest {
         "not is_nil(value)",
         renderer.renderGuardForTest(
             ExpressionGuard.of(
-                NotExpr.of(
-                    LocalCallExpr.of("is_nil", List.of(Variable.of("value")))))));
+                NotExpr.of(LocalCallExpr.of("is_nil", List.of(Variable.of("value")))))));
   }
 
   @Test
@@ -332,22 +331,14 @@ class ElixirRendererTest {
             WithExpr.of(
                 List.of(
                     WithBinding.of(
-                        TuplePattern.of(
-                            List.of(
-                                AtomPattern.of("ok"),
-                                VariablePattern.of("value"))),
+                        TuplePattern.of(List.of(AtomPattern.of("ok"), VariablePattern.of("value"))),
                         LocalCallExpr.of("fetch", List.of(Variable.of("input"))))),
                 Variable.of("value"),
                 List.of(
                     WithElseClause.of(
                         TuplePattern.of(
-                            List.of(
-                                AtomPattern.of("error"),
-                                VariablePattern.of("reason"))),
-                        TupleExpr.of(
-                            List.of(
-                                AtomExpr.of("error"),
-                                Variable.of("reason"))))))));
+                            List.of(AtomPattern.of("error"), VariablePattern.of("reason"))),
+                        TupleExpr.of(List.of(AtomExpr.of("error"), Variable.of("reason"))))))));
   }
 
   @Test
@@ -790,10 +781,7 @@ class ElixirRendererTest {
     Callback callback =
         Callback.of(
             "handle_get_type_closure",
-            List.of(
-                "term()",
-                "BasicServiceTypes.GetTypeClosureInput.t()",
-                "term()"),
+            List.of("term()", "BasicServiceTypes.GetTypeClosureInput.t()", "term()"),
             "{:ok, BasicServiceTypes.GetTypeClosureOutput.t()} | {:error, term()}");
 
     assertEquals(
@@ -813,10 +801,7 @@ class ElixirRendererTest {
     Callback callback =
         Callback.of(
             "handle_get_type_closure",
-            List.of(
-                "term()",
-                "BasicServiceTypes.GetTypeClosureInput.t()",
-                "term()"),
+            List.of("term()", "BasicServiceTypes.GetTypeClosureInput.t()", "term()"),
             "{:ok, BasicServiceTypes.GetTypeClosureOutput.t()} | {:error, term()}",
             FunctionDoc.of("Get type closure."));
 
@@ -838,10 +823,7 @@ class ElixirRendererTest {
     Callback callback =
         Callback.of(
             "handle_get_type_closure",
-            List.of(
-                "term()",
-                "BasicServiceTypes.GetTypeClosureInput.t()",
-                "term()"),
+            List.of("term()", "BasicServiceTypes.GetTypeClosureInput.t()", "term()"),
             "{:ok, BasicServiceTypes.GetTypeClosureOutput.t()} | {:error, term()}",
             FunctionDoc.of("Get type closure."));
     Function callbacksFunction =

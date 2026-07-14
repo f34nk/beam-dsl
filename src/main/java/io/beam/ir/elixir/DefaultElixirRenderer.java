@@ -1094,13 +1094,7 @@ final class DefaultElixirRenderer implements Renderer {
     List<String> params = callback.params();
     String returnType = callback.returnType();
     String compactParams = String.join(", ", params);
-    String compact =
-        "@callback "
-            + callback.name()
-            + "("
-            + compactParams
-            + ") :: "
-            + returnType;
+    String compact = "@callback " + callback.name() + "(" + compactParams + ") :: " + returnType;
     if (params.size() <= 1 && (indent + compact).length() <= PRINT_WIDTH) {
       out.append(indent).append(compact).append('\n');
       return;
