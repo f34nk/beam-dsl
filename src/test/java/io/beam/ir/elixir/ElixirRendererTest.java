@@ -507,6 +507,16 @@ class ElixirRendererTest {
     assertEquals(
         "v.(:syntax)",
         ElixirRenderer.renderExpression(dotCall(Variable.of("v"), List.of(AtomExpr.of("syntax")))));
+    assertEquals(
+        "handler.handle_create_user(%{}, input, %{})",
+        ElixirRenderer.renderExpression(
+            new DotCallExpr(
+                Variable.of("handler"),
+                "handle_create_user",
+                List.of(
+                    MapExpr.of(List.of()),
+                    Variable.of("input"),
+                    MapExpr.of(List.of())))));
   }
 
   @Test

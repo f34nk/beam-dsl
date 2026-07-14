@@ -918,18 +918,25 @@ final class DefaultElixirRenderer implements Renderer {
     }
     String qualified = call.function();
     int dot = qualified.lastIndexOf('.');
-    String target = dot >= 0 ? qualified : qualified;
+    if (dot < 0) {
+      if (!receiverMethodCallExceedsPrintWidth(call.receiver(), qualified, call.args())) {
+        render(call.receiver(), out, indent);
+        out.append('.').append(qualified).append('(');
+        renderCommaSeparated(call.args(), out, indent);
+        out.append(')');
+        return;
+      }
+      renderReceiverMethodCallVertical(call.receiver(), qualified, call.args(), out, indent);
+      return;
+    }
+    String target = qualified;
     List<Expression> allArgs = prependReceiver(call.receiver(), call.args());
     if (!callExceedsPrintWidth(
-        dot >= 0 ? qualified.substring(0, dot) : null,
-        dot >= 0 ? qualified.substring(dot + 1) : qualified,
+        qualified.substring(0, dot),
+        qualified.substring(dot + 1),
         allArgs,
         call.receiver())) {
-      if (dot >= 0) {
-        out.append(qualified, 0, dot).append('.').append(qualified.substring(dot + 1));
-      } else {
-        out.append(qualified);
-      }
+      out.append(qualified, 0, dot).append('.').append(qualified.substring(dot + 1));
       out.append('(');
       render(call.receiver(), out, indent);
       for (Expression arg : call.args()) {
@@ -940,6 +947,36 @@ final class DefaultElixirRenderer implements Renderer {
       return;
     }
     renderCallVertical(target, allArgs, out, indent, call.receiver());
+  }
+
+  private boolean receiverMethodCallExceedsPrintWidth(
+      Expression receiver, String function, List<Expression> args) {
+    return exceedsPrintWidth(
+        scratch -> {
+          render(receiver, scratch, "");
+          scratch.append('.').append(function).append('(');
+          renderCommaSeparated(args, scratch, "");
+          scratch.append(')');
+        });
+  }
+
+  private void renderReceiverMethodCallVertical(
+      Expression receiver,
+      String function,
+      List<Expression> args,
+      StringBuilder out,
+      String indent) {
+    render(receiver, out, indent);
+    out.append('.').append(function).append("(\n");
+    String argIndent = indent + INDENT;
+    for (int i = 0; i < args.size(); i++) {
+      if (i > 0) {
+        out.append(",\n");
+      }
+      out.append(argIndent);
+      render(args.get(i), out, argIndent);
+    }
+    out.append('\n').append(indent).append(')');
   }
 
   private List<Expression> prependReceiver(Expression receiver, List<Expression> args) {
