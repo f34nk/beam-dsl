@@ -139,6 +139,8 @@ final class DefaultElixirRenderer implements Renderer {
       render(notExpr.expression(), out, indent);
     } else if (expression instanceof CondExpr cond) {
       render(cond, out, indent);
+    } else if (expression instanceof WithExpr with) {
+      render(with, out, indent);
     } else {
       throw new IllegalArgumentException("Unsupported expression: " + expression);
     }
@@ -454,6 +456,36 @@ final class DefaultElixirRenderer implements Renderer {
     out.append('\n').append(indent).append("end");
   }
 
+  private void render(WithExpr with, StringBuilder out, String indent) {
+    out.append("with ");
+    for (int i = 0; i < with.bindings().size(); i++) {
+      if (i > 0) {
+        out.append(",\n").append(indent).append(INDENT);
+      }
+      WithBinding binding = with.bindings().get(i);
+      render(binding.pattern(), out);
+      out.append(" <- ");
+      render(binding.expression(), out, indent);
+    }
+    out.append(" do\n");
+    out.append(indent).append(INDENT);
+    render(with.body(), out, indent + INDENT);
+    if (!with.elseClauses().isEmpty()) {
+      out.append("\n").append(indent).append("else\n");
+      for (int i = 0; i < with.elseClauses().size(); i++) {
+        WithElseClause elseClause = with.elseClauses().get(i);
+        out.append(indent).append(INDENT);
+        render(elseClause.pattern(), out);
+        out.append(" -> ");
+        render(elseClause.body(), out, indent + INDENT);
+        if (i < with.elseClauses().size() - 1) {
+          out.append('\n');
+        }
+      }
+    }
+    out.append('\n').append(indent).append("end");
+  }
+
   private boolean clauseUsesExpandedFormat(Clause clause) {
     return patternContainsPin(clause.pattern());
   }
@@ -482,6 +514,7 @@ final class DefaultElixirRenderer implements Renderer {
   private boolean usesMultilineCaseBody(Expression body) {
     if (body instanceof CaseExpr
         || body instanceof CondExpr
+        || body instanceof WithExpr
         || body instanceof BlockExpr
         || body instanceof MatchExpr
         || body instanceof TryExpr
@@ -555,6 +588,7 @@ final class DefaultElixirRenderer implements Renderer {
     return current instanceof IfExpr
         || current instanceof CaseExpr
         || current instanceof CondExpr
+        || current instanceof WithExpr
         || current instanceof TryExpr
         || current instanceof StructExpr;
   }

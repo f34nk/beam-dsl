@@ -27,4 +27,5 @@ public sealed interface Expression
         RaiseExpr,
         BinaryExpr,
         NotExpr,
-        CondExpr {}
+        CondExpr,
+        WithExpr {}

@@ -320,6 +320,37 @@ class ElixirRendererTest {
   }
 
   @Test
+  void rendersWithExprWithElse() {
+    assertEquals(
+        """
+        with {:ok, value} <- fetch(input) do
+          value
+        else
+          {:error, reason} -> {:error, reason}
+        end""",
+        ElixirRenderer.renderExpression(
+            WithExpr.of(
+                List.of(
+                    WithBinding.of(
+                        TuplePattern.of(
+                            List.of(
+                                AtomPattern.of("ok"),
+                                VariablePattern.of("value"))),
+                        LocalCallExpr.of("fetch", List.of(Variable.of("input"))))),
+                Variable.of("value"),
+                List.of(
+                    WithElseClause.of(
+                        TuplePattern.of(
+                            List.of(
+                                AtomPattern.of("error"),
+                                VariablePattern.of("reason"))),
+                        TupleExpr.of(
+                            List.of(
+                                AtomExpr.of("error"),
+                                Variable.of("reason"))))))));
+  }
+
+  @Test
   void rendersCaseExprWithGuard() {
     assertEquals(
         """
