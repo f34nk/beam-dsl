@@ -9,10 +9,12 @@ public record Module(
     List<Alias> aliases,
     List<String> moduleAttributes,
     List<TypesModule> nestedTypesModules,
+    List<Callback> callbacks,
     List<String> trailingModuleAttributes,
     List<Function> functions) {
 
   public static Module of(String name, List<Function> functions) {
-    return new Module(name, null, List.of(), List.of(), List.of(), List.of(), List.of(), functions);
+    return new Module(
+        name, null, List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), functions);
   }
 }

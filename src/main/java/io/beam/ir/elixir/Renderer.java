@@ -8,6 +8,8 @@ public interface Renderer {
 
   String renderFunction(Function function);
 
+  String renderCallback(Callback callback, String indent);
+
   String renderExpression(Expression expression);
 
   default String renderStatement(Expression expression) {

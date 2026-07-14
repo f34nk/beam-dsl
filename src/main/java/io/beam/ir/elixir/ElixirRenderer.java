@@ -22,6 +22,14 @@ public final class ElixirRenderer {
     return DEFAULT.renderFunction(function);
   }
 
+  public static String renderCallback(Callback callback) {
+    return DEFAULT.renderCallback(callback, "  ");
+  }
+
+  public static String renderCallback(Callback callback, String indent) {
+    return DEFAULT.renderCallback(callback, indent);
+  }
+
   public static String renderExpression(Expression expression) {
     return DEFAULT.renderExpression(expression);
   }

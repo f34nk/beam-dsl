@@ -412,6 +412,7 @@ class ElixirRendererTest {
                 List.of(),
                 List.of(),
                 List.of(),
+                List.of(),
                 List.of(encode))));
   }
 
@@ -717,6 +718,106 @@ class ElixirRendererTest {
                         new ComparisonGuard(Variable.of("v"), "!=", NilExpr.of()),
                         LocalCallExpr.of("encode_value", List.of(Variable.of("v")))),
                     AnonFunClause.of(List.of(WildcardPattern.of()), AtomExpr.of("pop"))))));
+  }
+
+  @Test
+  void rendersCallbackWithoutDoc() {
+    Callback callback =
+        Callback.of(
+            "handle_get_type_closure",
+            List.of(
+                "term()",
+                "BasicServiceTypes.GetTypeClosureInput.t()",
+                "term()"),
+            "{:ok, BasicServiceTypes.GetTypeClosureOutput.t()} | {:error, term()}");
+
+    assertEquals(
+        """
+          @callback handle_get_type_closure(
+                      term(),
+                      BasicServiceTypes.GetTypeClosureInput.t(),
+                      term()
+          ) ::
+            {:ok, BasicServiceTypes.GetTypeClosureOutput.t()} | {:error, term()}
+        """,
+        ElixirRenderer.renderCallback(callback));
+  }
+
+  @Test
+  void rendersCallbackWithDoc() {
+    Callback callback =
+        Callback.of(
+            "handle_get_type_closure",
+            List.of(
+                "term()",
+                "BasicServiceTypes.GetTypeClosureInput.t()",
+                "term()"),
+            "{:ok, BasicServiceTypes.GetTypeClosureOutput.t()} | {:error, term()}",
+            FunctionDoc.of("Get type closure."));
+
+    assertEquals(
+        """
+          @doc "Get type closure."
+          @callback handle_get_type_closure(
+                      term(),
+                      BasicServiceTypes.GetTypeClosureInput.t(),
+                      term()
+          ) ::
+            {:ok, BasicServiceTypes.GetTypeClosureOutput.t()} | {:error, term()}
+        """,
+        ElixirRenderer.renderCallback(callback));
+  }
+
+  @Test
+  void rendersModuleWithCallbacks() {
+    Callback callback =
+        Callback.of(
+            "handle_get_type_closure",
+            List.of(
+                "term()",
+                "BasicServiceTypes.GetTypeClosureInput.t()",
+                "term()"),
+            "{:ok, BasicServiceTypes.GetTypeClosureOutput.t()} | {:error, term()}",
+            FunctionDoc.of("Get type closure."));
+    Function callbacksFunction =
+        new Function(
+            "callbacks",
+            false,
+            List.of(FunctionHead.of(List.of())),
+            ListExpr.of(List.of(AtomExpr.of("handle_get_type_closure"))),
+            null,
+            null,
+            true);
+
+    assertEquals(
+        """
+        defmodule BasicServiceBehaviour do
+          @moduledoc "Generated behaviour."
+
+          alias BasicServiceTypes
+
+          @doc "Get type closure."
+          @callback handle_get_type_closure(
+                      term(),
+                      BasicServiceTypes.GetTypeClosureInput.t(),
+                      term()
+          ) ::
+            {:ok, BasicServiceTypes.GetTypeClosureOutput.t()} | {:error, term()}
+
+          def callbacks, do: [:handle_get_type_closure]
+        end
+        """,
+        ElixirRenderer.render(
+            new Module(
+                "BasicServiceBehaviour",
+                Moduledoc.of("Generated behaviour."),
+                List.of(),
+                List.of(Alias.of("BasicServiceTypes")),
+                List.of(),
+                List.of(),
+                List.of(callback),
+                List.of(),
+                List.of(callbacksFunction))));
   }
 
   private static DotCallExpr dotCall(Expression receiver, List<Expression> args) {

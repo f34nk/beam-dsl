@@ -995,6 +995,57 @@ final class DefaultElixirRenderer implements Renderer {
     return value.replace("\\", "\\\\").replace("\"", "\\\"");
   }
 
+  private static final String CALLBACK_PARAM_INDENT = INDENT.repeat(6);
+
+  private void render(Callback callback, StringBuilder out, String indent) {
+    if (callback.docOrNull() != null) {
+      out.append(indent)
+          .append("@doc \"")
+          .append(escapeString(callback.docOrNull().text()))
+          .append("\"\n");
+    }
+    renderCallbackBody(callback, out, indent);
+  }
+
+  private void renderCallbackBody(Callback callback, StringBuilder out, String indent) {
+    List<String> params = callback.params();
+    String returnType = callback.returnType();
+    String compactParams = String.join(", ", params);
+    String compact =
+        "@callback "
+            + callback.name()
+            + "("
+            + compactParams
+            + ") :: "
+            + returnType;
+    if (params.size() <= 1 && (indent + compact).length() <= PRINT_WIDTH) {
+      out.append(indent).append(compact).append('\n');
+      return;
+    }
+    if (params.isEmpty()) {
+      String header = "@callback " + callback.name() + "() ::";
+      if ((indent + header + " " + returnType).length() <= PRINT_WIDTH) {
+        out.append(indent).append(header).append(' ').append(returnType).append('\n');
+        return;
+      }
+      out.append(indent).append(header).append('\n');
+      out.append(indent).append(INDENT).append(returnType).append('\n');
+      return;
+    }
+    out.append(indent).append("@callback ").append(callback.name()).append("(\n");
+    String paramIndent = indent + CALLBACK_PARAM_INDENT;
+    for (int i = 0; i < params.size(); i++) {
+      out.append(paramIndent).append(params.get(i));
+      if (i < params.size() - 1) {
+        out.append(",\n");
+      } else {
+        out.append('\n');
+      }
+    }
+    out.append(indent).append(") ::\n");
+    out.append(indent).append(INDENT).append(returnType).append('\n');
+  }
+
   private void render(Function function, StringBuilder out, String indent) {
     if (function.docOrNull() != null) {
       out.append(indent)
@@ -1127,6 +1178,18 @@ final class DefaultElixirRenderer implements Renderer {
       renderNestedTypesModule(module.nestedTypesModules().get(i), out, INDENT);
       if (i < module.nestedTypesModules().size() - 1) {
         out.append('\n');
+      }
+      hasHeader = true;
+    }
+    if (!module.callbacks().isEmpty()) {
+      if (hasHeader) {
+        out.append('\n');
+      }
+      for (int i = 0; i < module.callbacks().size(); i++) {
+        if (i > 0) {
+          out.append('\n');
+        }
+        render(module.callbacks().get(i), out, INDENT);
       }
       hasHeader = true;
     }
@@ -1303,6 +1366,13 @@ final class DefaultElixirRenderer implements Renderer {
   public String renderFunction(Function function) {
     StringBuilder out = new StringBuilder();
     render(function, out, "");
+    return out.toString().stripTrailing() + "\n";
+  }
+
+  @Override
+  public String renderCallback(Callback callback, String indent) {
+    StringBuilder out = new StringBuilder();
+    render(callback, out, indent);
     return out.toString().stripTrailing() + "\n";
   }
 

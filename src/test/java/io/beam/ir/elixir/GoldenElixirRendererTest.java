@@ -111,6 +111,7 @@ class GoldenElixirRendererTest {
             syntaxTypesRequest(),
             syntaxTypesResponse(),
             syntaxTypesTaggedError()),
+        List.of(),
         List.of(
             "@type client_config :: %{binary() => term()}",
             "@type credentials :: %{\n"
@@ -1978,6 +1979,7 @@ class GoldenElixirRendererTest {
         List.of(),
         aliases,
         moduleAttributes,
+        List.of(),
         List.of(),
         trailingModuleAttributes,
         functions);
