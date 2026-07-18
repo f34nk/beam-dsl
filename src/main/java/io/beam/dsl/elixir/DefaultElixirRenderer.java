@@ -680,7 +680,7 @@ final class DefaultElixirRenderer implements Renderer {
 
   private void render(AnonFun fun, StringBuilder out, String indent) {
     List<AnonFunClause> clauses = fun.clauses();
-      if (clauses.size() == 1 && clauses.get(0).guardOrNull() == null) {
+    if (clauses.size() == 1 && clauses.get(0).guardOrNull() == null) {
       AnonFunClause clause = clauses.get(0);
       if (isSimpleAnonFunBody(clause.body())) {
         out.append("fn");
@@ -936,10 +936,7 @@ final class DefaultElixirRenderer implements Renderer {
     String target = qualified;
     List<Expression> allArgs = prependReceiver(call.receiver(), call.args());
     if (!callExceedsPrintWidth(
-        qualified.substring(0, dot),
-        qualified.substring(dot + 1),
-        allArgs,
-        call.receiver())) {
+        qualified.substring(0, dot), qualified.substring(dot + 1), allArgs, call.receiver())) {
       out.append(qualified, 0, dot).append('.').append(qualified.substring(dot + 1));
       out.append('(');
       render(call.receiver(), out, indent);
@@ -1457,10 +1454,7 @@ final class DefaultElixirRenderer implements Renderer {
     }
     String text = moduledoc.text();
     if (!text.contains("\n")) {
-      out.append(indent)
-          .append("@moduledoc \"")
-          .append(escapeString(text))
-          .append("\"\n");
+      out.append(indent).append("@moduledoc \"").append(escapeString(text)).append("\"\n");
       return;
     }
     out.append(indent).append("@moduledoc \"\"\"\n");

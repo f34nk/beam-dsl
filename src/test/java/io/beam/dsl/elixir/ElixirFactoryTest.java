@@ -9,11 +9,9 @@ class ElixirFactoryTest {
 
   @Test
   void caseExprOfMatchesConstructor() {
-    List<Clause> clauses =
-        List.of(Clause.of(VariablePattern.of("x"), Variable.of("x")));
+    List<Clause> clauses = List.of(Clause.of(VariablePattern.of("x"), Variable.of("x")));
     assertEquals(
-        new CaseExpr(Variable.of("value"), clauses),
-        CaseExpr.of(Variable.of("value"), clauses));
+        new CaseExpr(Variable.of("value"), clauses), CaseExpr.of(Variable.of("value"), clauses));
     assertEquals(new CaseExpr(null, clauses), CaseExpr.piped(clauses));
   }
 
@@ -32,11 +30,8 @@ class ElixirFactoryTest {
 
   @Test
   void pipeExprOfMatchesConstructor() {
-    List<PipeStep> steps =
-        List.of(PipeStep.of(LocalCallExpr.of("decode", List.of()), List.of()));
-    assertEquals(
-        new PipeExpr(Variable.of("body"), steps),
-        PipeExpr.of(Variable.of("body"), steps));
+    List<PipeStep> steps = List.of(PipeStep.of(LocalCallExpr.of("decode", List.of()), List.of()));
+    assertEquals(new PipeExpr(Variable.of("body"), steps), PipeExpr.of(Variable.of("body"), steps));
   }
 
   @Test
@@ -74,17 +69,12 @@ class ElixirFactoryTest {
   void interpolatedSegmentsOfMatchConstructors() {
     assertEquals(new InterpolatedLiteral("hello"), InterpolatedLiteral.of("hello"));
     assertEquals(
-        new InterpolatedExpr(Variable.of("name")),
-        InterpolatedExpr.of(Variable.of("name")));
+        new InterpolatedExpr(Variable.of("name")), InterpolatedExpr.of(Variable.of("name")));
     assertEquals(
         new InterpolatedStringExpr(
-            List.of(
-                InterpolatedLiteral.of("hello "),
-                InterpolatedExpr.of(Variable.of("name")))),
+            List.of(InterpolatedLiteral.of("hello "), InterpolatedExpr.of(Variable.of("name")))),
         InterpolatedStringExpr.of(
-            List.of(
-                InterpolatedLiteral.of("hello "),
-                InterpolatedExpr.of(Variable.of("name")))));
+            List.of(InterpolatedLiteral.of("hello "), InterpolatedExpr.of(Variable.of("name")))));
   }
 
   @Test
@@ -105,12 +95,9 @@ class ElixirFactoryTest {
     List<CatchClause> catchClauses =
         List.of(
             CatchClause.of(
-                VariablePattern.of("kind"),
-                VariablePattern.of("reason"),
-                Variable.of("reason")));
+                VariablePattern.of("kind"), VariablePattern.of("reason"), Variable.of("reason")));
     assertEquals(
-        new TryExpr(AtomExpr.of("ok"), catchClauses),
-        TryExpr.of(AtomExpr.of("ok"), catchClauses));
+        new TryExpr(AtomExpr.of("ok"), catchClauses), TryExpr.of(AtomExpr.of("ok"), catchClauses));
   }
 
   @Test
@@ -194,9 +181,7 @@ class ElixirFactoryTest {
   void useDirectiveOfMatchesConstructor() {
     List<UseOption> options =
         List.of(UseOption.of("only", ListExpr.of(List.of(AtomExpr.of("decode")))));
-    assertEquals(
-        new UseDirective("Jason", options),
-        UseDirective.of("Jason", options));
+    assertEquals(new UseDirective("Jason", options), UseDirective.of("Jason", options));
     assertEquals(
         new UseOption("only", ListExpr.of(List.of(AtomExpr.of("decode")))),
         UseOption.of("only", ListExpr.of(List.of(AtomExpr.of("decode")))));
@@ -207,10 +192,8 @@ class ElixirFactoryTest {
     Expression exception = AtomExpr.of("error");
     Expression message = StringExpr.of("failed");
 
+    assertEquals(new RaiseExpr(exception, message, false), RaiseExpr.of(exception, message));
     assertEquals(
-        new RaiseExpr(exception, message, false), RaiseExpr.of(exception, message));
-    assertEquals(
-        new RaiseExpr(exception, message, true),
-        RaiseExpr.parenthesized(exception, message));
+        new RaiseExpr(exception, message, true), RaiseExpr.parenthesized(exception, message));
   }
 }

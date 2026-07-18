@@ -49,19 +49,15 @@ class ElixirRendererTest {
     assertEquals(
         "[1, 2] ++ tail",
         ElixirRenderer.renderExpression(
-            ListExpr.of(
-                List.of(IntegerExpr.of(1), IntegerExpr.of(2)), Variable.of("tail"))));
+            ListExpr.of(List.of(IntegerExpr.of(1), IntegerExpr.of(2)), Variable.of("tail"))));
     assertEquals(
         "[{\"Action\", action}, {\"Version\", version}] ++ flatten_query_input(input)",
         ElixirRenderer.renderExpression(
             ListExpr.of(
                 List.of(
-                    TupleExpr.of(
-                        List.of(StringExpr.of("Action"), Variable.of("action"))),
-                    TupleExpr.of(
-                        List.of(StringExpr.of("Version"), Variable.of("version")))),
-                LocalCallExpr.of(
-                    "flatten_query_input", List.of(Variable.of("input"))))));
+                    TupleExpr.of(List.of(StringExpr.of("Action"), Variable.of("action"))),
+                    TupleExpr.of(List.of(StringExpr.of("Version"), Variable.of("version")))),
+                LocalCallExpr.of("flatten_query_input", List.of(Variable.of("input"))))));
   }
 
   @Test
@@ -77,8 +73,7 @@ class ElixirRendererTest {
                 List.of(
                     LocalCallExpr.of("first_element", List.of(Variable.of("input"))),
                     LocalCallExpr.of("second_element", List.of(Variable.of("input")))),
-                LocalCallExpr.of(
-                    "flatten_query_input", List.of(Variable.of("input"))))));
+                LocalCallExpr.of("flatten_query_input", List.of(Variable.of("input"))))));
   }
 
   @Test
@@ -550,10 +545,7 @@ class ElixirRendererTest {
             new DotCallExpr(
                 Variable.of("handler"),
                 "handle_create_user",
-                List.of(
-                    MapExpr.of(List.of()),
-                    Variable.of("input"),
-                    MapExpr.of(List.of())))));
+                List.of(MapExpr.of(List.of()), Variable.of("input"), MapExpr.of(List.of())))));
   }
 
   @Test

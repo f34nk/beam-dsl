@@ -13,8 +13,7 @@ public record IfExpr(
     return new IfExpr(condition, thenBranch, elseBranch, inline);
   }
 
-  public static IfExpr inline(
-      Expression condition, Expression thenBranch, Expression elseBranch) {
+  public static IfExpr inline(Expression condition, Expression thenBranch, Expression elseBranch) {
     return new IfExpr(condition, thenBranch, elseBranch, true);
   }
 }

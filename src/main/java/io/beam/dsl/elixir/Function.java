@@ -23,11 +23,7 @@ public record Function(
   }
 
   public static Function of(
-      String name,
-      boolean private_,
-      List<FunctionHead> heads,
-      Expression body,
-      boolean oneLiner) {
+      String name, boolean private_, List<FunctionHead> heads, Expression body, boolean oneLiner) {
     return new Function(name, private_, heads, body, null, null, oneLiner);
   }
 }
